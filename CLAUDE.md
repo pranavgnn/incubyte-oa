@@ -99,8 +99,11 @@ config/env.ts  zod env schema → typed `env`; only place reading process.env
 app.ts         createApp(deps): builds the Express app; no listen()
 container.ts   composition root: wires real repos → services → controllers
 server.ts      local entry: builds the real container, calls createApp(deps), listen()
-api/index.ts   Vercel entry: builds the real container, exports createApp(deps); no listen()
+vercel.ts      Vercel entry: builds the real container (small pool + attachDatabasePool),
+               default-exports createApp(deps); no listen()
 ```
+
+All paths above are under `apps/api/src/`. `apps/api/scripts/build.ts` bundles `src/vercel.ts` with esbuild into `dist/index.js`, inlining workspace packages and keeping npm deps external. Vercel picks up that file through `outputDirectory: "dist"` in `apps/api/vercel.json`, and `scripts/smoke-bundle.ts` checks it in CI. Do not add an `api/` folder or a root-level `index.ts`/`app.ts`/`server.ts` in `apps/api`, because Vercel would treat them as extra functions or entrypoints.
 
 - **Dependency injection:** use manual constructor injection, no DI framework. Services depend on repository _interfaces_. `container.ts` is the only place that instantiates concrete classes. Tests pass fakes or test-DB repos into `createApp(deps)`.
 - Express 5 forwards async errors. Do not wrap handlers in try/catch and do not add async-handler libraries.
