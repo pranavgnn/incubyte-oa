@@ -59,4 +59,57 @@ describe("POST /api/vehicles", () => {
 
     expect(response.status).toBe(401);
   });
+
+  const { make: _make, ...withoutMake } = validBody;
+
+  it.each([
+    { label: "make is empty", body: { ...validBody, make: "" }, path: "make" },
+    { label: "make is only whitespace", body: { ...validBody, make: "   " }, path: "make" },
+    { label: "make is missing", body: withoutMake, path: "make" },
+    { label: "model is only whitespace", body: { ...validBody, model: " " }, path: "model" },
+    { label: "category is unknown", body: { ...validBody, category: "bike" }, path: "category" },
+    { label: "price is zero", body: { ...validBody, price: 0 }, path: "price" },
+    { label: "price is negative", body: { ...validBody, price: -100 }, path: "price" },
+    { label: "price is not an integer", body: { ...validBody, price: 199.99 }, path: "price" },
+    { label: "price is a string", body: { ...validBody, price: "25000" }, path: "price" },
+    { label: "price overflows int32", body: { ...validBody, price: 2 ** 31 }, path: "price" },
+    { label: "quantity is negative", body: { ...validBody, quantity: -1 }, path: "quantity" },
+    {
+      label: "quantity is not an integer",
+      body: { ...validBody, quantity: 1.5 },
+      path: "quantity",
+    },
+    {
+      label: "quantity overflows int32",
+      body: { ...validBody, quantity: 2 ** 31 },
+      path: "quantity",
+    },
+    {
+      label: "imageUrl uses http",
+      body: { ...validBody, imageUrl: "http://images.example.com/a.jpg" },
+      path: "imageUrl",
+    },
+    {
+      label: "imageUrl is not a URL",
+      body: { ...validBody, imageUrl: "camry.jpg" },
+      path: "imageUrl",
+    },
+    { label: "an unknown key is sent", body: { ...validBody, id: "x" }, path: "" },
+  ])("returns 400 VALIDATION_ERROR when $label, creating nothing", async ({ body, path }) => {
+    const response = await create(body);
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe("VALIDATION_ERROR");
+    expect(response.body.error.details).toContainEqual(
+      expect.objectContaining({ path: path === "" ? [] : [path] }),
+    );
+    expect(await testDatabase.db.select().from(vehicles)).toHaveLength(0);
+  });
+
+  it("accepts a quantity of zero, so sold-out stock can be listed", async () => {
+    const response = await create({ ...validBody, quantity: 0 });
+
+    expect(response.status).toBe(201);
+    expect(response.body.quantity).toBe(0);
+  });
 });
