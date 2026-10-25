@@ -38,4 +38,15 @@ describe("requireRole", () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ ok: true });
   });
+
+  it("returns 403 FORBIDDEN for an authenticated caller without the role", async () => {
+    const response = await request(adminOnlyApp())
+      .get("/admin-only")
+      .set("Authorization", await bearer("user"));
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({
+      error: { code: "FORBIDDEN", message: "Insufficient permissions", details: [] },
+    });
+  });
 });
