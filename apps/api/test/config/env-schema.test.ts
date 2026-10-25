@@ -28,6 +28,16 @@ describe("parseEnv", () => {
     expect(() => parseEnv({ ...validSource, JWT_SECRET: "a".repeat(31) })).toThrow(/JWT_SECRET/);
   });
 
+  it("defaults NODE_ENV, PORT and JWT_EXPIRES_IN when unset", () => {
+    const { NODE_ENV: _n, PORT: _p, JWT_EXPIRES_IN: _j, ...required } = validSource;
+
+    expect(parseEnv(required)).toMatchObject({
+      NODE_ENV: "development",
+      PORT: 3000,
+      JWT_EXPIRES_IN: "15m",
+    });
+  });
+
   it("throws a readable message naming every invalid key", () => {
     const { DATABASE_URL: _omitted, ...withoutDatabaseUrl } = validSource;
 
