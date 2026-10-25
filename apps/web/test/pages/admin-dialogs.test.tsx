@@ -1,13 +1,13 @@
 import { screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { cardTitles, renderDashboard, serveInventory } from "../dashboard-helpers";
+import { setupUser } from "../helpers";
 
 async function openAddDialog() {
   serveInventory();
   renderDashboard("/", "admin");
   await cardTitles();
-  const user = userEvent.setup();
+  const user = setupUser();
   await user.click(screen.getByRole("button", { name: "Add vehicle" }));
   const dialog = within(await screen.findByRole("dialog", { name: "Add vehicle" }));
   return { user, dialog };

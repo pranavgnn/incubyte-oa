@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router";
 import type { Vehicle } from "@/api/vehicle-contracts";
 import { useAuth } from "@/auth/auth-provider";
 import { Button } from "@/components/ui/button";
+import { type AdminDialog, AdminDialogs } from "@/inventory/admin/admin-dialogs";
 import { type VehicleAction, VehicleActions } from "@/inventory/admin/vehicle-actions";
 import { FilterBar } from "@/inventory/filter-bar";
 import {
@@ -19,8 +20,6 @@ import { VehicleCard } from "@/inventory/vehicle-card";
 import { hasActiveFilters, readFilters } from "@/inventory/vehicle-filters";
 import { cn } from "@/lib/utils";
 
-export type AdminDialog = { action: "add" } | { action: VehicleAction; vehicle: Vehicle };
-
 export function DashboardPage() {
   const { state } = useAuth();
   // Admin UI is not rendered at all for customers; the API still checks.
@@ -28,7 +27,7 @@ export function DashboardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const filters = useMemo(() => readFilters(searchParams), [searchParams]);
   const inventory = useInventory(filters);
-  const [, setDialog] = useState<AdminDialog | null>(null);
+  const [dialog, setDialog] = useState<AdminDialog | null>(null);
   const all = inventory.all ?? [];
   const inStock = all.filter((vehicle) => vehicle.quantity > 0).length;
   const clearFilters = () => setSearchParams({});
@@ -74,6 +73,7 @@ export function DashboardPage() {
           onAction={isAdmin ? (action, vehicle) => setDialog({ action, vehicle }) : undefined}
         />
       </div>
+      {isAdmin && dialog && <AdminDialogs dialog={dialog} onClose={() => setDialog(null)} />}
     </>
   );
 }
