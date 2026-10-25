@@ -162,7 +162,7 @@ describe("Edit vehicle", () => {
     return { user, dialog, lists };
   }
 
-  it("prefills, waits for a change, then saves the full editable payload", async () => {
+  it("prefills, waits for a change, then saves every editable field except quantity", async () => {
     const { user, dialog, lists } = await openEditDialog();
     let received: { path: string; body: unknown } | null = null;
     server.use(
@@ -175,6 +175,12 @@ describe("Edit vehicle", () => {
     expect(dialog.getByLabelText("Make")).toHaveValue("Tata");
     expect(dialog.getByLabelText("Price")).toHaveValue("1250000");
     expect(dialog.getByRole("button", { name: "Save changes" })).toBeDisabled();
+    // Stock is shown but cannot be edited here; PUT rejects quantity.
+    expect(dialog.getByLabelText("Quantity")).toHaveValue(5);
+    expect(dialog.getByLabelText("Quantity")).toHaveAttribute("readonly");
+    expect(dialog.getByLabelText("Quantity")).toHaveAccessibleDescription(
+      "Stock changes only through purchase and restock",
+    );
 
     await user.clear(dialog.getByLabelText("Price"));
     await user.type(dialog.getByLabelText("Price"), "1300000");
@@ -183,7 +189,7 @@ describe("Edit vehicle", () => {
     expect(await screen.findByText("Changes saved")).toBeInTheDocument();
     expect(received).toEqual({
       path: nexon.id,
-      body: { make: "Tata", model: "Nexon", category: "suv", price: 1_300_000, quantity: 5 },
+      body: { make: "Tata", model: "Nexon", category: "suv", price: 1_300_000 },
     });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     await vi.waitFor(() => expect(lists.count).toBe(2));
