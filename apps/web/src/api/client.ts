@@ -13,7 +13,11 @@ type RequestOptions<T> = {
   schema: z.ZodType<T>;
 };
 
-export function createApiClient({ baseUrl, getToken = () => null }: ApiClientOptions) {
+export function createApiClient({
+  baseUrl,
+  getToken = () => null,
+  onUnauthorized = () => {},
+}: ApiClientOptions) {
   async function request<T>(
     path: string,
     { method = "GET", schema }: RequestOptions<T>,
@@ -27,6 +31,7 @@ export function createApiClient({ baseUrl, getToken = () => null }: ApiClientOpt
       const parsed = errorResponseSchema.safeParse(body);
       if (!parsed.success) throw unexpectedResponse(response.status);
       const { error } = parsed.data;
+      if (response.status === 401) onUnauthorized();
       throw new ApiError(response.status, error.code, error.message, error.details);
     }
     const parsed = schema.safeParse(body);
