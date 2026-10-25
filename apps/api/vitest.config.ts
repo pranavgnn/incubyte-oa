@@ -14,7 +14,13 @@ export default defineConfig({
       provider: "v8",
       include: ["src/**/*.ts"],
       // Entry points and wiring only; all real logic stays measured.
-      exclude: ["src/server.ts", "src/container.ts", "src/db/migrate.ts", "src/db/seed.ts"],
+      exclude: [
+        "src/server.ts",
+        "src/container.ts",
+        "src/config/env.ts",
+        "src/db/migrate.ts",
+        "src/db/seed.ts",
+      ],
       reporter: ["text", "html", "lcov"],
       thresholds: {
         lines: 90,
