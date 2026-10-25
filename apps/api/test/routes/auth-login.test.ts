@@ -3,6 +3,8 @@ import { jwtVerify } from "jose";
 import request, { type Response } from "supertest";
 import { describe, expect, it } from "vitest";
 import { users } from "../../src/db/schema.js";
+import { seedAdmin } from "../../src/db/seed-admin.js";
+import { BcryptPasswordHasher } from "../../src/services/bcrypt-password-hasher.js";
 import { testDatabase } from "../db.js";
 import { buildApp, TEST_JWT_SECRET } from "../helpers/build-app.js";
 import { registerUser } from "../helpers/users.js";
@@ -140,5 +142,14 @@ describe("POST /api/auth/login", () => {
     expect(response.body.error.details).toEqual([
       { path: [], message: expect.stringContaining(key) },
     ]);
+  });
+
+  it("logs in the seeded admin with the printed password and reports the admin role", async () => {
+    const admin = await seedAdmin(testDatabase.db, "admin@example.com", new BcryptPasswordHasher());
+
+    const response = await login(admin);
+
+    expect(response.status).toBe(200);
+    expect(response.body.user).toMatchObject({ email: "admin@example.com", role: "admin" });
   });
 });
