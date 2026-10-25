@@ -28,6 +28,10 @@ describe("parseEnv", () => {
     expect(() => parseEnv({ ...validSource, JWT_SECRET: "a".repeat(31) })).toThrow(/JWT_SECRET/);
   });
 
+  it("returns a frozen object so config cannot be mutated at runtime", () => {
+    expect(Object.isFrozen(parseEnv(validSource))).toBe(true);
+  });
+
   it("defaults NODE_ENV, PORT and JWT_EXPIRES_IN when unset", () => {
     const { NODE_ENV: _n, PORT: _p, JWT_EXPIRES_IN: _j, ...required } = validSource;
 
