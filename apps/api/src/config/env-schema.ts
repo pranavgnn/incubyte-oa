@@ -1,13 +1,17 @@
-export type Env = Readonly<{
-  NODE_ENV: "development" | "test" | "production";
-  PORT: number;
-  DATABASE_URL: string;
-  TEST_DATABASE_URL?: string | undefined;
-  JWT_SECRET: string;
-  JWT_EXPIRES_IN: string;
-  WEB_ORIGIN: string;
-}>;
+import { z } from "zod";
 
-export function parseEnv(_source: Record<string, string | undefined>): Env {
-  throw new Error("not implemented");
+export const envSchema = z.object({
+  NODE_ENV: z.enum(["development", "test", "production"]),
+  PORT: z.coerce.number().int().positive(),
+  DATABASE_URL: z.url(),
+  TEST_DATABASE_URL: z.url().optional(),
+  JWT_SECRET: z.string(),
+  JWT_EXPIRES_IN: z.string(),
+  WEB_ORIGIN: z.url(),
+});
+
+export type Env = Readonly<z.infer<typeof envSchema>>;
+
+export function parseEnv(source: Record<string, string | undefined>): Env {
+  return envSchema.parse(source);
 }
