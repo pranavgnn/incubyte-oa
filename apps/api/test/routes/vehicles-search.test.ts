@@ -4,7 +4,7 @@ import { buildApp } from "../helpers/build-app.js";
 import { bearer } from "../helpers/tokens.js";
 import { insertVehicle } from "../helpers/vehicles.js";
 
-async function search(query: Record<string, string>) {
+async function search(query: Partial<Record<string, string>>) {
   return request(buildApp())
     .get("/api/vehicles/search")
     .query(query)
@@ -47,6 +47,43 @@ describe("GET /api/vehicles/search", () => {
       expect(models(response.body)).toEqual(expected);
     },
   );
+
+  it.each([
+    { query: { make: "toyota" }, expected: ["Supra", "Corolla"] },
+    { query: { make: "O" }, expected: ["Transit", "Civic", "Supra", "Corolla"] },
+    { query: { model: "A" }, expected: ["Transit", "Supra", "Corolla"] },
+    { query: { category: "coupe" }, expected: ["Supra"] },
+    { query: { minPrice: "40000" }, expected: ["Model 3", "Transit", "Supra"] },
+    { query: { maxPrice: "22000" }, expected: ["Civic", "Corolla"] },
+    { query: { minPrice: "40000", maxPrice: "40000" }, expected: ["Transit"] },
+    { query: { make: "toyota", maxPrice: "30000" }, expected: ["Corolla"] },
+    { query: { q: "t", category: "van" }, expected: ["Transit"] },
+  ])(
+    "applies every given filter together, prices inclusive: $query",
+    async ({ query, expected }) => {
+      await seedCatalogue();
+
+      const response = await search(query);
+
+      expect(response.status).toBe(200);
+      expect(models(response.body)).toEqual(expected);
+    },
+  );
+
+  it.each([
+    { field: "q", value: "%" },
+    { field: "q", value: "_" },
+    { field: "make", value: "%" },
+    { field: "model", value: "\\" },
+  ])("treats LIKE wildcards in $field=$value as literal characters", async ({ field, value }) => {
+    await insertVehicle({ make: "Plain", model: "Plain" });
+    const literal = await insertVehicle({ make: `A${value}B`, model: `C${value}D` });
+
+    const response = await search({ [field]: value });
+
+    expect(response.status).toBe(200);
+    expect(response.body.map(({ id }: { id: string }) => id)).toEqual([literal.id]);
+  });
 
   it("returns every vehicle, out of stock included, when no filter is given", async () => {
     await seedCatalogue();
