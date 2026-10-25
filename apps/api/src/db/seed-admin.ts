@@ -34,3 +34,14 @@ export async function seedAdmin(
   `);
   return { email, password };
 }
+
+export type SeedOptions = {
+  db: Database;
+  adminEmail: string | undefined;
+  passwords: PasswordHasher;
+  log: (message: string) => void;
+};
+
+export async function runSeed(_options: SeedOptions): Promise<void> {
+  throw new Error("not implemented");
+}

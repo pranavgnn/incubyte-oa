@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { users } from "../../src/db/schema.js";
-import { seedAdmin } from "../../src/db/seed-admin.js";
+import { runSeed, seedAdmin } from "../../src/db/seed-admin.js";
 import { BcryptPasswordHasher } from "../../src/services/bcrypt-password-hasher.js";
 import { testDatabase } from "../db.js";
 
@@ -54,5 +54,20 @@ describe("seedAdmin", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]?.role).toBe("admin");
     expect(await bcrypt.compare(credentials.password, rows[0]?.password_hash ?? "")).toBe(true);
+  });
+});
+
+describe("runSeed", () => {
+  it("prints the admin email and working password exactly once", async () => {
+    const log = vi.fn<(message: string) => void>();
+
+    await runSeed({ db: testDatabase.db, adminEmail: "admin@example.com", passwords: hasher, log });
+
+    expect(log).toHaveBeenCalledTimes(1);
+    const message = log.mock.calls[0]?.[0] ?? "";
+    expect(message).toContain("admin@example.com");
+    const password = /password: (\S+)/.exec(message)?.[1] ?? "";
+    const [row] = await usersWithEmail("admin@example.com");
+    expect(await bcrypt.compare(password, row?.password_hash ?? "")).toBe(true);
   });
 });
