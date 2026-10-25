@@ -1,4 +1,5 @@
 import type { Vehicle } from "@dealership/shared";
+import { MAX_RESTOCK_QUANTITY, restockRequestSchema } from "@dealership/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MinusIcon, PlusIcon } from "lucide-react";
 import { useId, useState } from "react";
@@ -21,12 +22,16 @@ import { Spinner } from "@/components/ui/spinner";
 
 const UNITS_MESSAGE = "Enter a whole number of at least 1";
 
+// The shared restock rule (whole number, 1 to MAX_RESTOCK_QUANTITY) on
+// top of coercion from the input's text.
 const restockSchema = z.object({
-  quantity: z.coerce
-    .number({ error: UNITS_MESSAGE })
-    .int({ error: UNITS_MESSAGE })
-    .min(1, { error: UNITS_MESSAGE }),
+  quantity: z.coerce.number().pipe(restockRequestSchema.shape.quantity),
 });
+
+const restockErrorMap: z.core.$ZodErrorMap = (issue) =>
+  issue.code === "too_big"
+    ? `Restock at most ${MAX_RESTOCK_QUANTITY} units at a time`
+    : UNITS_MESSAGE;
 
 type RestockValues = z.input<typeof restockSchema>;
 type RestockOutput = z.output<typeof restockSchema>;
@@ -42,7 +47,7 @@ export function RestockDialog({ vehicle, onSubmit, onError, onClose }: RestockDi
   const id = useId();
   const [formError, setFormError] = useState<string | null>(null);
   const form = useForm<RestockValues, unknown, RestockOutput>({
-    resolver: zodResolver(restockSchema),
+    resolver: zodResolver(restockSchema, { error: restockErrorMap }),
     defaultValues: { quantity: "1" },
   });
   const pending = form.formState.isSubmitting;
