@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import { describe, expect, it } from "vitest";
+import { users } from "../../src/db/schema.js";
 import { seedAdmin } from "../../src/db/seed-admin.js";
 import { BcryptPasswordHasher } from "../../src/services/bcrypt-password-hasher.js";
 import { testDatabase } from "../db.js";
@@ -40,5 +41,18 @@ describe("seedAdmin", () => {
     const hash = rows[0]?.password_hash ?? "";
     expect(await bcrypt.compare(second.password, hash)).toBe(true);
     expect(await bcrypt.compare(first.password, hash)).toBe(false);
+  });
+
+  it("promotes an existing regular user with that email, in any case, to admin with a new password", async () => {
+    await testDatabase.db
+      .insert(users)
+      .values({ email: "Admin@Example.com", passwordHash: "old-hash", role: "user" });
+
+    const credentials = await seedAdmin(testDatabase.db, "admin@example.com", hasher);
+
+    const rows = await usersWithEmail("admin@example.com");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.role).toBe("admin");
+    expect(await bcrypt.compare(credentials.password, rows[0]?.password_hash ?? "")).toBe(true);
   });
 });
