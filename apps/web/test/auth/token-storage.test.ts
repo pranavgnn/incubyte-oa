@@ -11,4 +11,23 @@ describe("token storage", () => {
     tokens.clear();
     expect(tokens.get()).toBeNull();
   });
+
+  it("acts as empty instead of throwing when storage is unavailable", () => {
+    const blocked = {
+      getItem() {
+        throw new DOMException("Access denied", "SecurityError");
+      },
+      setItem() {
+        throw new DOMException("Quota exceeded", "QuotaExceededError");
+      },
+      removeItem() {
+        throw new DOMException("Access denied", "SecurityError");
+      },
+    } as unknown as Storage;
+    const tokens = createTokenStorage(blocked);
+
+    expect(tokens.get()).toBeNull();
+    expect(() => tokens.set("t0k3n")).not.toThrow();
+    expect(() => tokens.clear()).not.toThrow();
+  });
 });
