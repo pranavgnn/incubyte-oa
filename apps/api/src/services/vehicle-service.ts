@@ -38,6 +38,6 @@ export class VehicleService {
   }
 
   async delete(id: string): Promise<void> {
-    await this.vehicles.delete(id);
+    if (!(await this.vehicles.delete(id))) throw new NotFoundError("Vehicle not found");
   }
 }

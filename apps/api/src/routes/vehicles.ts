@@ -29,6 +29,11 @@ export function vehicleRoutes(controller: VehicleController, authenticate: Reque
     validate({ params: vehicleIdParamsSchema, body: updateVehicleRequestSchema }),
     controller.update,
   );
-  router.delete("/:id", controller.delete);
+  router.delete(
+    "/:id",
+    requireRole("admin"),
+    validate({ params: vehicleIdParamsSchema }),
+    controller.delete,
+  );
   return router;
 }
