@@ -1,5 +1,6 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
+import { testDatabase } from "../db.js";
 import { buildApp } from "../helpers/build-app.js";
 import { signToken } from "../helpers/tokens.js";
 
@@ -88,6 +89,16 @@ describe("GET /api/auth/me", () => {
   ])("returns 401 for a correctly signed token with $label", async ({ claims }) => {
     const { user } = await registerUser("alice@example.com", "correct-horse");
     const token = await signToken(claims(user.id));
+
+    const response = await me(`Bearer ${token}`);
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual(INVALID_TOKEN);
+  });
+
+  it("returns 401 Invalid or expired token when the user in the token no longer exists", async () => {
+    const { token, user } = await registerUser("alice@example.com", "correct-horse");
+    await testDatabase.pool.query("DELETE FROM users WHERE id = $1", [user.id]);
 
     const response = await me(`Bearer ${token}`);
 
