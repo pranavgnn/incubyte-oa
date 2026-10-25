@@ -6,6 +6,6 @@ export class HealthService {
   constructor(private readonly repository: HealthRepository) {}
 
   async check(): Promise<void> {
-    throw new Error("not implemented");
+    await this.repository.ping();
   }
 }
