@@ -1,7 +1,7 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HttpResponse, http } from "msw";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { Vehicle } from "@/api/vehicle-contracts";
 import { DashboardPage } from "@/pages/dashboard-page";
 import { aVehicle } from "../fixtures";
@@ -125,5 +125,93 @@ describe("DashboardPage states", () => {
 
     expect(await cardTitles()).toEqual(["Nexon", "Thar", "Punch"]);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+});
+
+describe("DashboardPage filter bar", () => {
+  async function renderLoaded(path = "/") {
+    const served = serveInventory();
+    const view = renderDashboard(path);
+    await cardTitles();
+    return { ...served, ...view, user: userEvent.setup() };
+  }
+
+  it("debounces typing into one search with q", async () => {
+    const { user, router, searches } = await renderLoaded();
+
+    await user.type(screen.getByRole("searchbox", { name: "Search" }), "nex");
+
+    await vi.waitFor(() => expect(router.state.location.search).toBe("?q=nex"));
+    await vi.waitFor(() => expect(searches).toEqual(["?q=nex"]));
+  });
+
+  it("offers sorted makes, enables model for a make, and resets model when make changes", async () => {
+    const { user, router } = await renderLoaded();
+    const model = screen.getByRole("combobox", { name: "Model" });
+    expect(model).toBeDisabled();
+
+    await user.click(screen.getByRole("combobox", { name: "Make" }));
+    const makes = screen.getAllByRole("option").map((option) => option.textContent);
+    expect(makes).toEqual(["All makes", "Mahindra", "Tata"]);
+    await user.click(screen.getByRole("option", { name: "Tata" }));
+    expect(router.state.location.search).toBe("?make=Tata");
+
+    await user.click(screen.getByRole("combobox", { name: "Model" }));
+    const models = screen.getAllByRole("option").map((option) => option.textContent);
+    expect(models).toEqual(["All models", "Nexon", "Punch"]);
+    await user.click(screen.getByRole("option", { name: "Punch" }));
+    expect(router.state.location.search).toBe("?make=Tata&model=Punch");
+
+    await user.click(screen.getByRole("combobox", { name: "Make" }));
+    await user.click(screen.getByRole("option", { name: "Mahindra" }));
+    expect(router.state.location.search).toBe("?make=Mahindra");
+  });
+
+  it("filters by category value while showing its label", async () => {
+    const { user, router } = await renderLoaded();
+
+    await user.click(screen.getByRole("combobox", { name: "Category" }));
+    await user.click(screen.getByRole("option", { name: "SUV" }));
+
+    expect(router.state.location.search).toBe("?category=suv");
+  });
+
+  it("sets the price range from the popover and rejects a minimum above the maximum", async () => {
+    const { user, router } = await renderLoaded();
+
+    await user.click(screen.getByRole("button", { name: "Price" }));
+    await user.type(screen.getByLabelText("Min price"), "900000");
+    await user.type(screen.getByLabelText("Max price"), "100000");
+
+    expect(await screen.findByText("Min must not be above max")).toBeInTheDocument();
+    expect(router.state.location.search).toBe("");
+
+    await user.clear(screen.getByLabelText("Max price"));
+    await user.type(screen.getByLabelText("Max price"), "1500000");
+
+    await vi.waitFor(() =>
+      expect(router.state.location.search).toBe("?minPrice=900000&maxPrice=1500000"),
+    );
+  });
+
+  it("shows active filters as chips that remove themselves", async () => {
+    const { user, router } = await renderLoaded("/?make=Tata&model=Nexon&q=ne");
+
+    await user.click(screen.getByRole("button", { name: "Remove filter: Tata" }));
+
+    expect(router.state.location.search).toBe("?q=ne");
+    expect(screen.getByRole("searchbox", { name: "Search" })).toHaveValue("ne");
+    await user.click(screen.getByRole("button", { name: "Remove filter: “ne”" }));
+    expect(router.state.location.search).toBe("");
+    expect(screen.getByRole("searchbox", { name: "Search" })).toHaveValue("");
+  });
+
+  it("offers Reset only while a filter is active", async () => {
+    const { user, router } = await renderLoaded("/?category=suv&q=ne");
+
+    await user.click(screen.getByRole("button", { name: "Reset" }));
+
+    expect(router.state.location.search).toBe("");
+    expect(screen.queryByRole("button", { name: "Reset" })).not.toBeInTheDocument();
   });
 });
