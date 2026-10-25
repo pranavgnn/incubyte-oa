@@ -101,8 +101,12 @@ export type UpdateVehicleRequest = z.infer<typeof updateVehicleRequestSchema>;
 // It may be omitted or {}; any field is rejected rather than ignored.
 export const purchaseRequestSchema = z.strictObject({}).optional();
 
+// One restock adds at most this many units, so a mistyped extra zero
+// cannot flood inventory.
+export const MAX_RESTOCK_QUANTITY = 1000;
+
 export const restockRequestSchema = z.strictObject({
-  quantity: z.number(),
+  quantity: z.int().positive().max(MAX_RESTOCK_QUANTITY),
 });
 
 export type RestockRequest = z.infer<typeof restockRequestSchema>;

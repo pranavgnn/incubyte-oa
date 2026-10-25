@@ -43,6 +43,11 @@ export function vehicleRoutes(controller: VehicleController, authenticate: Reque
     validate({ params: vehicleIdParamsSchema, body: purchaseRequestSchema }),
     controller.purchase,
   );
-  router.post("/:id/restock", validate({ body: restockRequestSchema }), controller.restock);
+  router.post(
+    "/:id/restock",
+    requireRole("admin"),
+    validate({ params: vehicleIdParamsSchema, body: restockRequestSchema }),
+    controller.restock,
+  );
   return router;
 }

@@ -30,6 +30,7 @@ Places where the implementation is stricter than, or extends, the brief.
 - **`PUT /api/vehicles/:id` cannot change `quantity`.** Stock only moves through `POST /:id/purchase` and `POST /:id/restock`, which are single atomic `UPDATE … SET quantity = quantity ± n` statements. An edit that set quantity to an absolute value could silently overwrite a purchase that landed between the admin loading the form and saving it. The update schema is strict, so sending `quantity` is a 400. `imageUrl: null` clears the picture.
 - **Vehicle ids are validated as UUIDs, and an update must change something.** A malformed `:id` is a 400 `VALIDATION_ERROR` on `details[].path = ["id"]` instead of reaching Postgres, where the uuid cast would fail as a 500; a well-formed id with no row is a 404. An empty `PUT` body is a 400 rather than a no-op that bumps `updatedAt`.
 - **A purchase buys exactly one unit and takes no body fields.** The brief does not say how many units a purchase takes. One per request keeps the atomic update simple and matches a "Buy" button. The body may be omitted or `{}`; a body with any field, such as `{ "quantity": 2 }`, is a 400 so a client never believes it bought more than it did. Admins can purchase too; the route only needs authentication.
+- **A single restock adds at most 1000 units.** `POST /api/vehicles/:id/restock` takes `{ "quantity": n }` with `n` a whole number from 1 to 1000. The upper bound catches a mistyped extra zero before it floods inventory; larger deliveries take more than one call.
 
 ## Deploy
 

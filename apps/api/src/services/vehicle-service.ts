@@ -56,6 +56,8 @@ export class VehicleService {
   }
 
   async restock(id: string, amount: number): Promise<Vehicle> {
-    return (await this.vehicles.incrementQuantity(id, amount)) as Vehicle;
+    const vehicle = await this.vehicles.incrementQuantity(id, amount);
+    if (!vehicle) throw new NotFoundError("Vehicle not found");
+    return vehicle;
   }
 }
