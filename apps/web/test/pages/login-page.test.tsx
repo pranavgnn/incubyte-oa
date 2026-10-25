@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
@@ -88,5 +88,44 @@ describe("LoginPage", () => {
     expect(screen.queryByText("Session expired — please sign in")).not.toBeInTheDocument();
     expect(router.state.location.pathname).toBe("/login");
     expect(tokens.get()).toBeNull();
+  });
+
+  it("puts server validation errors on their fields", async () => {
+    server.use(
+      http.post(`${baseUrl}/api/auth/login`, () =>
+        HttpResponse.json(
+          errorBody("VALIDATION_ERROR", "Request validation failed", [
+            { path: ["email"], message: "Email domain is not accepted" },
+          ]),
+          { status: 400 },
+        ),
+      ),
+    );
+    renderLogin();
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText("Email"), "alice@example.com");
+    await user.type(screen.getByLabelText("Password"), "correct horse");
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+
+    await waitFor(() =>
+      expect(screen.getByLabelText("Email")).toHaveAccessibleDescription(
+        "Email domain is not accepted",
+      ),
+    );
+  });
+
+  it("shows other failures, such as a network error, in the inline alert", async () => {
+    server.use(http.post(`${baseUrl}/api/auth/login`, () => HttpResponse.error()));
+    renderLogin();
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText("Email"), "alice@example.com");
+    await user.type(screen.getByLabelText("Password"), "correct horse");
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Network error — check your connection",
+    );
   });
 });
