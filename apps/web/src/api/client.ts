@@ -9,9 +9,13 @@ type RequestOptions<T> = {
   schema: z.ZodType<T>;
 };
 
-export function createApiClient(_options: ApiClientOptions) {
-  async function request<T>(_path: string, _init: RequestOptions<T>): Promise<T> {
-    throw new Error("not implemented");
+export function createApiClient({ baseUrl }: ApiClientOptions) {
+  async function request<T>(
+    path: string,
+    { method = "GET", schema }: RequestOptions<T>,
+  ): Promise<T> {
+    const response = await fetch(new URL(path, baseUrl), { method });
+    return schema.parse(await response.json());
   }
 
   return { request };
