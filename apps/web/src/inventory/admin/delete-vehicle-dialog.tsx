@@ -1,6 +1,6 @@
+import type { Vehicle } from "@dealership/shared";
 import { type MouseEvent, useState } from "react";
 import { ApiError } from "@/api/errors";
-import type { Vehicle } from "@/api/vehicle-contracts";
 import { FormAlert } from "@/components/form-alert";
 import {
   AlertDialog,

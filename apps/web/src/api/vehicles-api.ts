@@ -1,12 +1,12 @@
+import {
+  type CreateVehicleRequest,
+  type UpdateVehicleRequest,
+  type Vehicle,
+  type VehicleSearchQuery,
+  vehicleSchema,
+} from "@dealership/shared";
 import { z } from "zod";
 import type { ApiClient } from "./client";
-import {
-  type Vehicle,
-  type VehicleInput,
-  type VehicleSearch,
-  type VehicleUpdate,
-  vehicleListSchema,
-} from "./vehicle-contracts";
 
 export function createVehiclesApi(client: ApiClient) {
   return {
@@ -14,7 +14,7 @@ export function createVehiclesApi(client: ApiClient) {
       return client.request("/api/vehicles", { schema: vehicleListSchema });
     },
 
-    search(filters: VehicleSearch): Promise<Vehicle[]> {
+    search(filters: VehicleSearchQuery): Promise<Vehicle[]> {
       return client.request(`/api/vehicles/search?${toQuery(filters)}`, {
         schema: vehicleListSchema,
       });
@@ -24,13 +24,13 @@ export function createVehiclesApi(client: ApiClient) {
       await client.request(`${vehiclePath(id)}/purchase`, { method: "POST", schema: ignored });
     },
 
-    async create(input: VehicleInput): Promise<void> {
+    async create(input: CreateVehicleRequest): Promise<void> {
       await client.request("/api/vehicles", { method: "POST", body: input, schema: ignored });
     },
 
     // Picks the fields explicitly: callers may hold a whole vehicle or
     // form output, and the API answers 400 to quantity or unknown keys.
-    async update(id: string, { make, model, category, price, imageUrl }: VehicleUpdate) {
+    async update(id: string, { make, model, category, price, imageUrl }: UpdateVehicleRequest) {
       const body = { make, model, category, price, imageUrl };
       await client.request(vehiclePath(id), { method: "PUT", body, schema: ignored });
     },
@@ -52,8 +52,10 @@ export function createVehiclesApi(client: ApiClient) {
 export type VehiclesApi = ReturnType<typeof createVehiclesApi>;
 
 // Writes are followed by a refetch of the list, so their response bodies
-// are not relied on (DESIGN.md section 0 does not define them).
+// are not relied on.
 const ignored = z.unknown();
+
+const vehicleListSchema = z.array(vehicleSchema);
 
 function vehiclePath(id: string): string {
   return `/api/vehicles/${encodeURIComponent(id)}`;
@@ -61,7 +63,7 @@ function vehiclePath(id: string): string {
 
 // Empty strings and missing keys are left out; the API treats a present
 // but empty param as a filter value.
-function toQuery(filters: VehicleSearch): URLSearchParams {
+function toQuery(filters: VehicleSearchQuery): URLSearchParams {
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(filters)) {
     if (value !== undefined && value !== "") query.set(key, String(value));

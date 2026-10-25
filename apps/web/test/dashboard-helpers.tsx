@@ -1,6 +1,6 @@
+import type { Vehicle } from "@dealership/shared";
 import { screen } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
-import type { Vehicle } from "@/api/vehicle-contracts";
 import { DashboardPage } from "@/pages/dashboard-page";
 import { aVehicle } from "./fixtures";
 import { aliceUser, baseUrl, renderRoutes } from "./helpers";

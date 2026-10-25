@@ -1,5 +1,6 @@
+import { type VehicleSearchQuery, vehicleCategorySchema } from "@dealership/shared";
 import { z } from "zod";
-import { categoryLabels, categorySchema, type VehicleSearch } from "@/api/vehicle-contracts";
+import { categoryLabels } from "@/inventory/category-labels";
 import { formatPrice } from "@/lib/format";
 
 export type FilterKey = "q" | "make" | "model" | "category" | "price";
@@ -19,12 +20,12 @@ const paramSchemas = {
   q: text,
   make: text,
   model: text,
-  category: categorySchema,
+  category: vehicleCategorySchema,
   minPrice: price,
   maxPrice: price,
-} satisfies Record<keyof VehicleSearch, z.ZodType>;
+} satisfies Record<keyof VehicleSearchQuery, z.ZodType>;
 
-export function readFilters(params: URLSearchParams): VehicleSearch {
+export function readFilters(params: URLSearchParams): VehicleSearchQuery {
   const filters: Record<string, unknown> = {};
   for (const [key, schema] of Object.entries(paramSchemas)) {
     const parsed = schema.safeParse(params.get(key));
@@ -33,14 +34,14 @@ export function readFilters(params: URLSearchParams): VehicleSearch {
   // A model only narrows a make; on its own it is a leftover from a
   // removed make.
   if (!filters.make) delete filters.model;
-  return filters as VehicleSearch;
+  return filters as VehicleSearchQuery;
 }
 
-export function hasActiveFilters(filters: VehicleSearch): boolean {
+export function hasActiveFilters(filters: VehicleSearchQuery): boolean {
   return Object.keys(filters).length > 0;
 }
 
-export function filterChips(filters: VehicleSearch): FilterChip[] {
+export function filterChips(filters: VehicleSearchQuery): FilterChip[] {
   const chips: FilterChip[] = [];
   if (filters.q) chips.push({ key: "q", label: `“${filters.q}”` });
   if (filters.make) chips.push({ key: "make", label: filters.make });
@@ -51,7 +52,7 @@ export function filterChips(filters: VehicleSearch): FilterChip[] {
   return chips;
 }
 
-function priceRangeLabel({ minPrice, maxPrice }: VehicleSearch): string | null {
+function priceRangeLabel({ minPrice, maxPrice }: VehicleSearchQuery): string | null {
   if (minPrice !== undefined && maxPrice !== undefined) {
     return `${formatPrice(minPrice)} – ${formatPrice(maxPrice)}`;
   }

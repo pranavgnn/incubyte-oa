@@ -1,6 +1,6 @@
+import type { Vehicle, VehicleSearchQuery } from "@dealership/shared";
 import { useCallback, useEffect, useState } from "react";
 import { useApi } from "@/api/api-provider";
-import type { Vehicle, VehicleSearch } from "@/api/vehicle-contracts";
 import { hasActiveFilters } from "./vehicle-filters";
 
 type Request<T> = { data: T | null; error: unknown; loading: boolean };
@@ -9,7 +9,7 @@ const idle = { data: null, error: null, loading: true };
 
 // The full list always loads: it feeds the header count and the make and
 // model options. Search runs on top of it only while a filter is active.
-export function useInventory(filters: VehicleSearch) {
+export function useInventory(filters: VehicleSearchQuery) {
   const { vehiclesApi } = useApi();
   const [version, setVersion] = useState(0);
   const [all, setAll] = useState<Request<Vehicle[]>>(idle);

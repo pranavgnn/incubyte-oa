@@ -1,6 +1,6 @@
+import type { CreateVehicleRequest, VehicleSearchQuery } from "@dealership/shared";
 import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
-import type { VehicleInput, VehicleSearch } from "@/api/vehicle-contracts";
 import { createVehiclesApi, type VehiclesApi } from "@/api/vehicles-api";
 import { aVehicle } from "../fixtures";
 import { baseUrl, createTestServices, errorBody } from "../helpers";
@@ -30,7 +30,7 @@ describe("vehiclesApi reads", () => {
     expect(authorization).toBe("Bearer t0k3n");
   });
 
-  it.each<[string, VehicleSearch, string]>([
+  it.each<[string, VehicleSearchQuery, string]>([
     ["a text query", { q: "nex" }, "q=nex"],
     [
       "every filter",
@@ -54,7 +54,7 @@ describe("vehiclesApi reads", () => {
   });
 });
 
-const input: VehicleInput = {
+const input: CreateVehicleRequest = {
   make: "Tata",
   model: "Nexon",
   category: "suv",

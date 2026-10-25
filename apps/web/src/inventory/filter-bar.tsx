@@ -1,13 +1,12 @@
+import {
+  VEHICLE_CATEGORIES,
+  type Vehicle,
+  type VehicleCategory,
+  type VehicleSearchQuery,
+} from "@dealership/shared";
 import { SearchIcon, XIcon } from "lucide-react";
 import { useCallback, useEffect, useId, useState } from "react";
 import { useSearchParams } from "react-router";
-import {
-  type Category,
-  categories,
-  categoryLabels,
-  type Vehicle,
-  type VehicleSearch,
-} from "@/api/vehicle-contracts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -21,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { categoryLabels } from "@/inventory/category-labels";
 import { PriceFilter } from "./price-filter";
 import { type FilterKey, filterChips, hasActiveFilters, removeFilter } from "./vehicle-filters";
 
@@ -28,10 +28,10 @@ import { type FilterKey, filterChips, hasActiveFilters, removeFilter } from "./v
 // sentinel that never reaches the URL.
 const ANY = "__any__";
 
-export type ParamChanges = Partial<Record<keyof VehicleSearch, string | undefined>>;
+export type ParamChanges = Partial<Record<keyof VehicleSearchQuery, string | undefined>>;
 
 type FilterBarProps = {
-  filters: VehicleSearch;
+  filters: VehicleSearchQuery;
   // The full inventory; makes, models and price bounds come from it.
   vehicles: Vehicle[] | null;
 };
@@ -98,7 +98,7 @@ export function FilterBar({ filters, vehicles }: FilterBarProps) {
               label="Category"
               value={filters.category}
               anyLabel="All categories"
-              options={categories.map((category: Category) => ({
+              options={VEHICLE_CATEGORIES.map((category: VehicleCategory) => ({
                 value: category,
                 label: categoryLabels[category],
               }))}

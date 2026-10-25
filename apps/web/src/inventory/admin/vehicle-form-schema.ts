@@ -1,5 +1,5 @@
+import { type CreateVehicleRequest, VEHICLE_CATEGORIES, type Vehicle } from "@dealership/shared";
 import { z } from "zod";
-import { categories, type Vehicle, type VehicleInput } from "@/api/vehicle-contracts";
 
 const PRICE_MESSAGE = "Enter a price in whole rupees";
 const QUANTITY_MESSAGE = "Enter a whole number, 0 or more";
@@ -14,8 +14,8 @@ export const vehicleFormSchema = z.object({
   // The select starts empty, so "" is a valid input that fails here.
   category: z
     .literal("")
-    .or(z.enum(categories))
-    .pipe(z.enum(categories, { error: "Choose a category" })),
+    .or(z.enum(VEHICLE_CATEGORIES))
+    .pipe(z.enum(VEHICLE_CATEGORIES, { error: "Choose a category" })),
   price: z.coerce
     .number({ error: PRICE_MESSAGE })
     .int({ error: PRICE_MESSAGE })
@@ -32,7 +32,7 @@ export const vehicleFormSchema = z.object({
 
 export type VehicleFormValues = z.input<typeof vehicleFormSchema>;
 
-export type VehicleFormOutput = z.output<typeof vehicleFormSchema> & VehicleInput;
+export type VehicleFormOutput = z.output<typeof vehicleFormSchema> & CreateVehicleRequest;
 
 export const emptyVehicleForm: VehicleFormValues = {
   make: "",

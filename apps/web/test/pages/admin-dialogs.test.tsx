@@ -1,7 +1,7 @@
+import type { Vehicle } from "@dealership/shared";
 import { screen, within } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { describe, expect, it, vi } from "vitest";
-import type { Vehicle } from "@/api/vehicle-contracts";
 import { cardTitles, inventory, renderDashboard, serveInventory } from "../dashboard-helpers";
 import { aVehicle } from "../fixtures";
 import { baseUrl, errorBody, setupUser } from "../helpers";

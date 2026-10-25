@@ -1,3 +1,4 @@
+import { type CreateVehicleRequest, VEHICLE_CATEGORIES } from "@dealership/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type ReactNode, useId, useState } from "react";
 import {
@@ -7,7 +8,6 @@ import {
   type RefCallBack,
   useForm,
 } from "react-hook-form";
-import { categories, categoryLabels, type VehicleInput } from "@/api/vehicle-contracts";
 import { applyFormErrors } from "@/auth/apply-form-errors";
 import { FormAlert } from "@/components/form-alert";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
+import { categoryLabels } from "@/inventory/category-labels";
 import {
   type VehicleFormOutput,
   type VehicleFormValues,
@@ -51,7 +52,7 @@ type VehicleFormDialogProps = {
   // Edit: nothing to save until a field differs from the vehicle, and
   // quantity is shown but never edited (stock changes through restock).
   editing?: boolean;
-  onSubmit: (input: VehicleInput) => Promise<void>;
+  onSubmit: (input: CreateVehicleRequest) => Promise<void>;
   // Returns true when the error was dealt with outside the form (toast,
   // closing the dialog); anything else is shown in the form.
   onError: (error: unknown) => boolean;
@@ -122,7 +123,7 @@ export function VehicleFormDialog({
                     <SelectValue placeholder="Choose a category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map((category) => (
+                    {VEHICLE_CATEGORIES.map((category) => (
                       <SelectItem key={category} value={category}>
                         {categoryLabels[category]}
                       </SelectItem>

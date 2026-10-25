@@ -1,7 +1,8 @@
+import type { Vehicle } from "@dealership/shared";
 import type { ReactNode } from "react";
-import { categoryLabels, type Vehicle } from "@/api/vehicle-contracts";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { categoryLabels } from "@/inventory/category-labels";
 import { formatPrice } from "@/lib/format";
 import { StockBadge } from "./stock-badge";
 import { VehicleImage } from "./vehicle-image";

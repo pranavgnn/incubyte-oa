@@ -1,5 +1,5 @@
+import type { Vehicle } from "@dealership/shared";
 import { MoreHorizontalIcon, PackagePlusIcon, PencilIcon, Trash2Icon } from "lucide-react";
-import type { Vehicle } from "@/api/vehicle-contracts";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,

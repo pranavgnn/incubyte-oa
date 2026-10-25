@@ -1,7 +1,7 @@
+import type { Vehicle } from "@dealership/shared";
 import { PlusIcon } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
-import type { Vehicle } from "@/api/vehicle-contracts";
 import { useAuth } from "@/auth/auth-provider";
 import { Button } from "@/components/ui/button";
 import { type AdminDialog, AdminDialogs } from "@/inventory/admin/admin-dialogs";

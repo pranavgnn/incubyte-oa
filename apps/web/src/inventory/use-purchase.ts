@@ -1,7 +1,7 @@
+import type { Vehicle } from "@dealership/shared";
 import { toast } from "sonner";
 import { useApi } from "@/api/api-provider";
 import { ApiError } from "@/api/errors";
-import type { Vehicle } from "@/api/vehicle-contracts";
 import { actionErrorMessage, ERROR_TOAST_MS, isNetworkError } from "./action-errors";
 import type { useInventory } from "./use-inventory";
 

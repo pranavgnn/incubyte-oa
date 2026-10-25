@@ -3,7 +3,7 @@ import { CarSilhouette } from "@/components/car-silhouette";
 
 // Vehicle photo on a muted stage. A missing or broken image falls back to
 // the silhouette, never the browser's broken-image icon.
-export function VehicleImage({ src, alt }: { src?: string; alt: string }) {
+export function VehicleImage({ src, alt }: { src: string | null; alt: string }) {
   const [failed, setFailed] = useState(false);
   return (
     <div className="flex aspect-video items-center justify-center bg-muted px-6">

@@ -1,4 +1,4 @@
-import type { Vehicle } from "@/api/vehicle-contracts";
+import type { Vehicle } from "@dealership/shared";
 
 let sequence = 0;
 
@@ -12,6 +12,7 @@ export function aVehicle(overrides: Partial<Vehicle> = {}): Vehicle {
     category: "suv",
     price: 1_250_000,
     quantity: 5,
+    imageUrl: null,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,

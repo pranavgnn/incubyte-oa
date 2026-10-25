@@ -1,9 +1,9 @@
+import type { Vehicle } from "@dealership/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MinusIcon, PlusIcon } from "lucide-react";
 import { useId, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
-import type { Vehicle } from "@/api/vehicle-contracts";
 import { applyFormErrors } from "@/auth/apply-form-errors";
 import { FormAlert } from "@/components/form-alert";
 import { Button } from "@/components/ui/button";

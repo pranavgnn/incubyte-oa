@@ -1,5 +1,5 @@
+import type { VehicleSearchQuery } from "@dealership/shared";
 import { describe, expect, it } from "vitest";
-import type { VehicleSearch } from "@/api/vehicle-contracts";
 import {
   type FilterKey,
   filterChips,
@@ -8,7 +8,7 @@ import {
 } from "@/inventory/vehicle-filters";
 
 describe("readFilters", () => {
-  it.each<[string, string, VehicleSearch]>([
+  it.each<[string, string, VehicleSearchQuery]>([
     ["no params", "", {}],
     [
       "every filter",
@@ -36,7 +36,7 @@ describe("readFilters", () => {
 });
 
 describe("filterChips", () => {
-  it.each<[string, VehicleSearch, string[]]>([
+  it.each<[string, VehicleSearchQuery, string[]]>([
     ["no filters", {}, []],
     [
       "text, make, model and category",

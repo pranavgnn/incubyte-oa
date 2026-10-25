@@ -1,6 +1,6 @@
+import type { Vehicle, VehicleSearchQuery } from "@dealership/shared";
 import { useEffect, useId, useState } from "react";
 import { z } from "zod";
-import type { Vehicle, VehicleSearch } from "@/api/vehicle-contracts";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,7 @@ const priceRangeSchema = z
   });
 
 type PriceFilterProps = {
-  filters: VehicleSearch;
+  filters: VehicleSearchQuery;
   vehicles: Vehicle[];
   disabled: boolean;
   onChange: (changes: ParamChanges, replace: boolean) => void;
@@ -112,7 +112,7 @@ function toParam(value: number | undefined): string | undefined {
 }
 
 function triggerLabel(
-  { minPrice, maxPrice }: VehicleSearch,
+  { minPrice, maxPrice }: VehicleSearchQuery,
   lowest: number | undefined,
   highest: number | undefined,
 ): string {

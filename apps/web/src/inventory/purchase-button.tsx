@@ -1,5 +1,5 @@
+import type { Vehicle } from "@dealership/shared";
 import { useId, useState } from "react";
-import type { Vehicle } from "@/api/vehicle-contracts";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
