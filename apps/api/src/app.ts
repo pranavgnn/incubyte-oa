@@ -3,6 +3,7 @@ import express, { type Express } from "express";
 import helmet from "helmet";
 import type { AuthController } from "./controllers/auth-controller.js";
 import type { HealthController } from "./controllers/health-controller.js";
+import type { VehicleController } from "./controllers/vehicle-controller.js";
 import { authenticate } from "./middleware/authenticate.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { notFound } from "./middleware/not-found.js";
@@ -19,6 +20,7 @@ export type AppDeps = {
   config: AppConfig;
   authController: AuthController;
   healthController: HealthController;
+  vehicleController: VehicleController;
   tokenVerifier: TokenVerifier;
 };
 
@@ -33,7 +35,7 @@ export function createApp(deps: AppDeps): Express {
   app.use(express.json({ limit: "10kb" }));
   const requireAuth = authenticate(deps.tokenVerifier);
   app.use("/api/auth", authRoutes(deps.authController, requireAuth));
-  app.use("/api/vehicles", vehicleRoutes(requireAuth));
+  app.use("/api/vehicles", vehicleRoutes(deps.vehicleController, requireAuth));
   app.use("/api/health", healthRoutes(deps.healthController));
   app.use(notFound);
   app.use(errorHandler);

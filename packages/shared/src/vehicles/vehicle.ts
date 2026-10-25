@@ -16,3 +16,18 @@ export const VEHICLE_CATEGORIES = [
 export const vehicleCategorySchema = z.enum(VEHICLE_CATEGORIES);
 
 export type VehicleCategory = z.infer<typeof vehicleCategorySchema>;
+
+// A vehicle as the API returns it. Timestamps are ISO 8601 strings.
+export const vehicleSchema = z.strictObject({
+  id: z.uuid(),
+  make: z.string(),
+  model: z.string(),
+  category: vehicleCategorySchema,
+  price: z.int(),
+  quantity: z.int(),
+  imageUrl: z.url().nullable(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+});
+
+export type Vehicle = z.infer<typeof vehicleSchema>;
