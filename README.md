@@ -25,6 +25,7 @@ Places where the implementation is stricter than, or extends, the brief.
 - **Web coverage excludes the generated shadcn primitives.** `src/components/ui/**` is CLI output, not code written in this repo, so measuring it would reward testing a vendor's components instead of the app. It is excluded along with the `main.tsx` bootstrap; the 80% thresholds apply to everything else in `apps/web/src`.
 - **The web app temporarily mirrors the login and `/api/auth/me` contracts.** Register, user and auth-response schemas come from `@dealership/shared`, but the login request and the `GET /api/auth/me` response are still being added on the API side. `apps/web/src/api/contracts.ts` defines just those two, built on the shared `userSchema`, and is marked for deletion once `feat/auth-login` merges so the shared package stays the single source of truth.
 - **After sign-in the app only follows a same-origin `next`.** `/login?next=…` comes from the URL, so anyone can craft a link with `next=https://evil.example`. Only values that start with a single `/` are followed; absolute, protocol-relative (`//host`) and backslash (`/\host`) forms fall back to `/`, so the login page cannot be used as an open redirect.
+- **Creating and updating vehicles is admin-only.** The brief only names delete and restock as admin actions. Letting any signed-in user add listings or change prices would let a customer edit the catalogue they buy from, so `POST /api/vehicles` and `PUT /api/vehicles/:id` also sit behind `requireRole("admin")`. Regular users get 403 `FORBIDDEN`.
 
 ## Deploy
 

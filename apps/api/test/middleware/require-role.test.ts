@@ -9,8 +9,8 @@ import { JoseTokenVerifier } from "../../src/services/jose-token-verifier.js";
 import { TEST_JWT_SECRET } from "../helpers/build-app.js";
 import { signToken } from "../helpers/tokens.js";
 
-// No production route uses requireRole yet, so it is exercised on a
-// throwaway app wired the way real admin routes will be.
+// Exercised on a throwaway app so the middleware's own rules are tested
+// apart from any route that happens to use it.
 function adminOnlyApp() {
   const app = express();
   app.get(
