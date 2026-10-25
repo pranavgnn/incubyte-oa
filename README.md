@@ -5,6 +5,7 @@ AI Usage
 
 Noticed that everything commits to main, I'd like to have it work in a branch, submit a pull request (i will manually code review), then on approval, merge. So changed CLAUDE.md
 
+3. Make claude on web generate me a robust DESIGN.md given some reference images from pinterest. https://claude.ai/share/9b0351ce-cd1e-4a79-91ed-ccb088fd1d05
 
 ## Design decisions
 
@@ -12,6 +13,7 @@ Places where the implementation is stricter than, or extends, the brief.
 
 - **`GET /api/health` is public.** Deploy checks call it without credentials. It runs `SELECT 1` so a 200 proves the API can reach Postgres, not just that the process is up.
 - **`SERVICE_UNAVAILABLE` (503) extends the error code map.** When the database is unreachable, health returns 503 in the standard error shape instead of a generic 500, so "API up, database down" is distinguishable from a crash. The driver's error message is never sent to the client.
+- **Password length is capped at 72 UTF-8 bytes, not 72 characters.** bcrypt only uses the first 72 bytes of its input and silently ignores the rest, so a longer password would be accepted but only partly checked at login. Counting bytes means a password of multi-byte characters (e.g. 25 × "€" = 75 bytes) is rejected with 400 instead of being truncated. The minimum stays 8 characters.
 - **The API is prebundled with esbuild instead of relying on Vercel's zero-config Express build.** Zero-config does not bundle: it compiles each `.ts` file with the repo's TypeScript (7.x here) and renames it to `.js`, but `@dealership/shared` exports its raw `./src/index.ts`, so the deployed function would fail to resolve it at runtime. `scripts/build.ts` bundles `src/vercel.ts` into `dist/index.js` (ESM, Node 22), inlining workspace packages and keeping npm dependencies external for Vercel to install and trace. CI builds and smoke-checks the bundle, so a broken bundle fails the pull request instead of the deploy.
 - **The Vercel function uses a small pg pool registered with `attachDatabasePool`.** Each Fluid compute instance keeps its own pool (max 5 clients, 5 s idle timeout) in front of Neon's pooled endpoint. `@vercel/functions` keeps the instance alive just long enough for idle clients to close before it suspends, so Neon's scale-to-zero never finds half-open sockets. This is the same failure class as the idle-client crash already handled in `db/client.ts`. The local server keeps pg's defaults.
 

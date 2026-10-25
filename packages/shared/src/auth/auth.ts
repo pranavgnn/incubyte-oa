@@ -4,9 +4,18 @@ export const roleSchema = z.enum(["user", "admin"]);
 
 export type Role = z.infer<typeof roleSchema>;
 
+// bcrypt ignores everything after the first 72 bytes, so the limit is
+// measured in UTF-8 bytes, not characters.
+const MAX_PASSWORD_BYTES = 72;
+
 export const registerRequestSchema = z.strictObject({
   email: z.email(),
-  password: z.string().min(8),
+  password: z
+    .string()
+    .min(8)
+    .refine((password) => new TextEncoder().encode(password).length <= MAX_PASSWORD_BYTES, {
+      message: `Password must be at most ${MAX_PASSWORD_BYTES} bytes`,
+    }),
 });
 
 export type RegisterRequest = z.infer<typeof registerRequestSchema>;
