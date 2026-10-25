@@ -1,6 +1,6 @@
 import { type AuthResponse, authResponseSchema } from "@dealership/shared";
 import type { ApiClient } from "./client";
-import type { MeResponse } from "./contracts";
+import { type MeResponse, meResponseSchema } from "./contracts";
 
 export type Credentials = { email: string; password: string };
 
@@ -27,7 +27,7 @@ export function createAuthApi(client: ApiClient) {
     },
 
     me(): Promise<MeResponse> {
-      throw new Error("not implemented");
+      return client.request("/api/auth/me", { schema: meResponseSchema });
     },
   };
 }
