@@ -43,15 +43,12 @@ export type SeedOptions = {
 };
 
 export async function runSeed(options: SeedOptions): Promise<void> {
-  const { email, password } = await seedAdmin(
-    options.db,
-    options.adminEmail as string,
-    options.passwords,
-  );
+  if (options.adminEmail === undefined) {
+    throw new Error("ADMIN_EMAIL is not set. Add it to apps/api/.env to choose the admin account.");
+  }
+  const { email, password } = await seedAdmin(options.db, options.adminEmail, options.passwords);
   // Printed once and never persisted: store it somewhere safe now.
   options.log(
-    `Admin credentials (shown once, not stored anywhere):
-  email: ${email}
-  password: ${password}`,
+    `Admin credentials (shown once, not stored anywhere):\n  email: ${email}\n  password: ${password}`,
   );
 }
