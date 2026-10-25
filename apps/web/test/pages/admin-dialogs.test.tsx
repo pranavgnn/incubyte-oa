@@ -205,3 +205,58 @@ describe("Edit vehicle", () => {
     await vi.waitFor(() => expect(lists.count).toBe(2));
   });
 });
+
+describe("Restock", () => {
+  const punch = inventory[2] as Vehicle;
+
+  async function openRestockDialog() {
+    const { lists } = serveInventory();
+    renderDashboard("/", "admin");
+    await cardTitles();
+    const user = setupUser();
+    await user.click(screen.getByRole("button", { name: "Actions for Tata Punch" }));
+    await user.click(await screen.findByRole("menuitem", { name: "Restock" }));
+    const dialog = within(await screen.findByRole("dialog", { name: "Restock Tata Punch" }));
+    return { user, dialog, lists };
+  }
+
+  it("previews the new total, steps with − and +, and adds the units", async () => {
+    const { user, dialog, lists } = await openRestockDialog();
+    let received: { path: string; body: unknown } | null = null;
+    server.use(
+      http.post(`${baseUrl}/api/vehicles/:id/restock`, async ({ request, params }) => {
+        received = { path: String(params.id), body: await request.json() };
+        return HttpResponse.json({ ...punch, quantity: 4 });
+      }),
+    );
+
+    expect(dialog.getByText("Current units")).toBeInTheDocument();
+    expect(dialog.getByLabelText("Add units")).toHaveValue(1);
+    expect(dialog.getByText("New total: 3")).toBeInTheDocument();
+    expect(dialog.getByRole("button", { name: "Decrease units" })).toBeDisabled();
+
+    await user.click(dialog.getByRole("button", { name: "Increase units" }));
+    await user.click(dialog.getByRole("button", { name: "Increase units" }));
+    await user.click(dialog.getByRole("button", { name: "Decrease units" }));
+    expect(dialog.getByText("New total: 4")).toBeInTheDocument();
+
+    await user.click(dialog.getByRole("button", { name: "Restock" }));
+
+    expect(await screen.findByText("Restocked: +2 units")).toBeInTheDocument();
+    expect(received).toEqual({ path: punch.id, body: { quantity: 2 } });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await vi.waitFor(() => expect(lists.count).toBe(2));
+  });
+
+  it.each(["0", "-3", "1.5", ""])("rejects %j units and sends nothing", async (units) => {
+    const { user, dialog } = await openRestockDialog();
+
+    await user.clear(dialog.getByLabelText("Add units"));
+    if (units) await user.type(dialog.getByLabelText("Add units"), units);
+    await user.click(dialog.getByRole("button", { name: "Restock" }));
+
+    expect(dialog.getByLabelText("Add units")).toHaveAccessibleDescription(
+      "Enter a whole number of at least 1",
+    );
+  });
+});
