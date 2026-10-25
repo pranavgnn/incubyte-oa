@@ -24,7 +24,9 @@ export function createApp(deps: AppDeps): Express {
   // An array makes cors reflect the origin only on an exact match; a plain
   // string would send the configured origin to every caller.
   app.use(cors({ origin: [deps.config.webOrigin] }));
-  app.use(express.json());
+  // Every request body in this API is a small JSON object; a tight limit
+  // keeps oversized payloads from tying up the parser.
+  app.use(express.json({ limit: "10kb" }));
   app.use("/api/auth", authRoutes(deps.authController));
   app.use("/api/health", healthRoutes(deps.healthController));
   app.use(notFound);

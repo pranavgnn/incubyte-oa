@@ -22,6 +22,11 @@ export class ConflictError extends AppError {
   readonly code = "CONFLICT";
 }
 
+export class PayloadTooLargeError extends AppError {
+  readonly status = 413;
+  readonly code = "PAYLOAD_TOO_LARGE";
+}
+
 export class ServiceUnavailableError extends AppError {
   readonly status = 503;
   readonly code = "SERVICE_UNAVAILABLE";

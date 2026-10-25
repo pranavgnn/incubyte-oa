@@ -1,6 +1,6 @@
 import type { ErrorResponse } from "@dealership/shared";
 import type { ErrorRequestHandler } from "express";
-import { AppError, ValidationError } from "../errors/app-error.js";
+import { AppError, PayloadTooLargeError, ValidationError } from "../errors/app-error.js";
 
 // The single place that turns errors into the standard error response.
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
@@ -20,6 +20,9 @@ function fromBodyParser(err: unknown): unknown {
   const type = (err as { type?: unknown } | null)?.type;
   if (type === "entity.parse.failed") {
     return new ValidationError("Malformed JSON body", [], { cause: err });
+  }
+  if (type === "entity.too.large") {
+    return new PayloadTooLargeError("Request body is too large", [], { cause: err });
   }
   return err;
 }
