@@ -17,5 +17,5 @@ export function parseEnv(source: Record<string, string | undefined>): Env {
   if (!result.success) {
     throw new Error(`Invalid environment variables:\n${z.prettifyError(result.error)}`);
   }
-  return result.data;
+  return Object.freeze(result.data);
 }
