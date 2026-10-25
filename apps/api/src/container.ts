@@ -8,6 +8,7 @@ import { DrizzleHealthRepository } from "./repositories/drizzle-health-repositor
 import { DrizzleUserRepository } from "./repositories/drizzle-user-repository.js";
 import { AuthService } from "./services/auth-service.js";
 import { HealthService } from "./services/health-service.js";
+import { JoseTokenIssuer } from "./services/jose-token-issuer.js";
 
 export type ContainerOptions = {
   pool?: Omit<PoolConfig, "connectionString">;
@@ -19,7 +20,12 @@ export function createContainer(env: Env, options: ContainerOptions = {}) {
 
   const deps: AppDeps = {
     config: { webOrigin: env.WEB_ORIGIN },
-    authController: new AuthController(new AuthService(new DrizzleUserRepository(db))),
+    authController: new AuthController(
+      new AuthService(
+        new DrizzleUserRepository(db),
+        new JoseTokenIssuer(env.JWT_SECRET, env.JWT_EXPIRES_IN),
+      ),
+    ),
     healthController: new HealthController(new HealthService(new DrizzleHealthRepository(db))),
   };
 

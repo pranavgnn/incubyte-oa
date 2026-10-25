@@ -5,6 +5,7 @@ import { DrizzleHealthRepository } from "../../src/repositories/drizzle-health-r
 import { DrizzleUserRepository } from "../../src/repositories/drizzle-user-repository.js";
 import { AuthService } from "../../src/services/auth-service.js";
 import { type HealthRepository, HealthService } from "../../src/services/health-service.js";
+import { JoseTokenIssuer } from "../../src/services/jose-token-issuer.js";
 import { testDatabase } from "../db.js";
 
 export const TEST_WEB_ORIGIN = "http://localhost:5173";
@@ -24,7 +25,12 @@ export function buildApp(overrides: Overrides = {}) {
   const healthService = overrides.healthService ?? new HealthService(healthRepository);
   return createApp({
     config: { webOrigin: TEST_WEB_ORIGIN },
-    authController: new AuthController(new AuthService(new DrizzleUserRepository(testDatabase.db))),
+    authController: new AuthController(
+      new AuthService(
+        new DrizzleUserRepository(testDatabase.db),
+        new JoseTokenIssuer(TEST_JWT_SECRET, TEST_JWT_EXPIRES_IN),
+      ),
+    ),
     healthController: new HealthController(healthService),
   });
 }
