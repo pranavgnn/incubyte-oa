@@ -82,4 +82,32 @@ describe("POST /api/vehicles/:id/purchase", () => {
     expect(response.body.error.code).toBe("VALIDATION_ERROR");
     expect(response.body.error.details).toContainEqual(expect.objectContaining({ path: ["id"] }));
   });
+
+  it("accepts an empty JSON object as the body", async () => {
+    const vehicle = await insertVehicle({ quantity: 2 });
+
+    const response = await request(buildApp())
+      .post(`/api/vehicles/${vehicle.id}/purchase`)
+      .set("Authorization", await bearer("user"))
+      .send({});
+
+    expect(response.status).toBe(200);
+    expect(response.body.quantity).toBe(1);
+  });
+
+  it.each([{ quantity: 2 }, { quantity: 1 }])(
+    "returns 400 VALIDATION_ERROR for a body with fields (%o), buying nothing",
+    async (body) => {
+      const vehicle = await insertVehicle({ quantity: 5 });
+
+      const response = await request(buildApp())
+        .post(`/api/vehicles/${vehicle.id}/purchase`)
+        .set("Authorization", await bearer("user"))
+        .send(body);
+
+      expect(response.status).toBe(400);
+      expect(response.body.error.code).toBe("VALIDATION_ERROR");
+      expect((await storedVehicle(vehicle.id))?.quantity).toBe(5);
+    },
+  );
 });
