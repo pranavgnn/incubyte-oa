@@ -75,4 +75,18 @@ describe("auth api", () => {
     expect(onUnauthorized).not.toHaveBeenCalled();
     expect(authorization).toBeNull();
   });
+
+  it("fetches the current user from /api/auth/me with the stored token", async () => {
+    let authorization: string | null = null;
+    server.use(
+      http.get(`${baseUrl}/api/auth/me`, ({ request }) => {
+        authorization = request.headers.get("Authorization");
+        return HttpResponse.json(user);
+      }),
+    );
+    const auth = createAuthApi(createApiClient({ baseUrl, getToken: () => "t0k3n" }));
+
+    await expect(auth.me()).resolves.toEqual(user);
+    expect(authorization).toBe("Bearer t0k3n");
+  });
 });

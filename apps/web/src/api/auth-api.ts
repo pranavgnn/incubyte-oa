@@ -1,5 +1,6 @@
 import { type AuthResponse, authResponseSchema } from "@dealership/shared";
 import type { ApiClient } from "./client";
+import type { MeResponse } from "./contracts";
 
 export type Credentials = { email: string; password: string };
 
@@ -23,6 +24,10 @@ export function createAuthApi(client: ApiClient) {
         anonymous: true,
         schema: authResponseSchema,
       });
+    },
+
+    me(): Promise<MeResponse> {
+      throw new Error("not implemented");
     },
   };
 }
