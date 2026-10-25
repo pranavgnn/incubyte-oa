@@ -30,5 +30,10 @@ export function resolveTestDatabaseUrl(
       "TEST_DATABASE_URL is not set. Point it at the dedicated test database; tests never fall back to DATABASE_URL.",
     );
   }
+  if (env.TEST_DATABASE_URL === env.DATABASE_URL) {
+    throw new Error(
+      "TEST_DATABASE_URL must differ from DATABASE_URL. Tests truncate tables and would wipe that database.",
+    );
+  }
   return env.TEST_DATABASE_URL;
 }
