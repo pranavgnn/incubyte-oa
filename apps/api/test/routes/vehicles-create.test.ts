@@ -43,4 +43,20 @@ describe("POST /api/vehicles", () => {
     expect(response.status).toBe(201);
     expect(response.body.imageUrl).toBe(imageUrl);
   });
+
+  it("returns 403 FORBIDDEN for a non-admin and creates nothing", async () => {
+    const response = await create(validBody, "user");
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({
+      error: { code: "FORBIDDEN", message: "Insufficient permissions", details: [] },
+    });
+    expect(await testDatabase.db.select().from(vehicles)).toHaveLength(0);
+  });
+
+  it("returns 401 without a bearer token", async () => {
+    const response = await request(buildApp()).post("/api/vehicles").send(validBody);
+
+    expect(response.status).toBe(401);
+  });
 });
