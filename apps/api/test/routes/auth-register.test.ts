@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { jwtVerify } from "jose";
 import request, { type Response } from "supertest";
 import { describe, expect, it } from "vitest";
+import { users } from "../../src/db/schema.js";
 import { testDatabase } from "../db.js";
 import { buildApp, TEST_JWT_SECRET } from "../helpers/build-app.js";
 
@@ -146,6 +147,19 @@ describe("POST /api/auth/register", () => {
     expect(response.body).toEqual({
       error: { code: "CONFLICT", message: "Email is already registered", details: [] },
     });
+    expect(await userCount()).toBe(1);
+  });
+
+  it("returns 409 when a row inserted without the schema (e.g. by the seed) differs only in case", async () => {
+    // Straight to the database, skipping the Zod normalisation, as a seed script or manual SQL could.
+    await testDatabase.db
+      .insert(users)
+      .values({ email: "Alice@Example.com", passwordHash: "not-a-real-hash" });
+
+    const response = await register({ email: "alice@example.com", password: "correct-horse" });
+
+    expect(response.status).toBe(409);
+    expect(response.body.error.code).toBe("CONFLICT");
     expect(await userCount()).toBe(1);
   });
 });
