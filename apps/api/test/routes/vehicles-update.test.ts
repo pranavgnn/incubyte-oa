@@ -44,4 +44,24 @@ describe("PUT /api/vehicles/:id", () => {
     expect(response.body.imageUrl).toBeNull();
     expect((await storedVehicle(vehicle.id))?.imageUrl).toBeNull();
   });
+
+  it("returns 403 FORBIDDEN for a non-admin and changes nothing", async () => {
+    const vehicle = await insertVehicle({ price: 20000 });
+
+    const response = await update(vehicle.id, { price: 1 }, "user");
+
+    expect(response.status).toBe(403);
+    expect(response.body.error.code).toBe("FORBIDDEN");
+    expect((await storedVehicle(vehicle.id))?.price).toBe(20000);
+  });
+
+  it("returns 401 without a bearer token", async () => {
+    const vehicle = await insertVehicle();
+
+    const response = await request(buildApp())
+      .put(`/api/vehicles/${vehicle.id}`)
+      .send({ price: 1 });
+
+    expect(response.status).toBe(401);
+  });
 });
