@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import request from "supertest";
 import { describe, expect, it } from "vitest";
@@ -63,5 +64,46 @@ describe("PUT /api/vehicles/:id", () => {
       .send({ price: 1 });
 
     expect(response.status).toBe(401);
+  });
+
+  it.each([
+    { label: "the body is empty", body: {}, path: [] },
+    { label: "quantity is sent", body: { quantity: 10 }, path: [] },
+    { label: "an unknown key is sent", body: { price: 100, color: "red" }, path: [] },
+    { label: "make is only whitespace", body: { make: "  " }, path: ["make"] },
+    { label: "category is unknown", body: { category: "bike" }, path: ["category"] },
+    { label: "price is zero", body: { price: 0 }, path: ["price"] },
+    { label: "price is not an integer", body: { price: 9.5 }, path: ["price"] },
+    {
+      label: "imageUrl uses http",
+      body: { imageUrl: "http://a.example/x.jpg" },
+      path: ["imageUrl"],
+    },
+  ])("returns 400 VALIDATION_ERROR when $label, changing nothing", async ({ body, path }) => {
+    const vehicle = await insertVehicle();
+
+    const response = await update(vehicle.id, body);
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe("VALIDATION_ERROR");
+    expect(response.body.error.details).toContainEqual(expect.objectContaining({ path }));
+    expect(await storedVehicle(vehicle.id)).toEqual(vehicle);
+  });
+
+  it("returns 400 VALIDATION_ERROR when the id is not a uuid", async () => {
+    const response = await update("not-a-uuid", { price: 100 });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe("VALIDATION_ERROR");
+    expect(response.body.error.details).toContainEqual(expect.objectContaining({ path: ["id"] }));
+  });
+
+  it("returns 404 NOT_FOUND when no vehicle has the id", async () => {
+    const response = await update(randomUUID(), { price: 100 });
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      error: { code: "NOT_FOUND", message: "Vehicle not found", details: [] },
+    });
   });
 });
