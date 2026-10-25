@@ -2,6 +2,7 @@ import { render } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { createMemoryRouter, type RouteObject, RouterProvider } from "react-router";
 import { Toaster } from "sonner";
+import { ApiProvider } from "@/api/api-provider";
 import { createAuthApi } from "@/api/auth-api";
 import { createApiClient } from "@/api/client";
 import { AuthProvider } from "@/auth/auth-provider";
@@ -44,7 +45,9 @@ export function renderRoutes(routes: RouteObject[], initialPath: string) {
       tokens={services.tokens}
       sessionExpiry={services.sessionExpiry}
     >
-      <RouterProvider router={router} />
+      <ApiProvider api={{ authApi: services.authApi }}>
+        <RouterProvider router={router} />
+      </ApiProvider>
       <Toaster />
     </AuthProvider>,
   );
