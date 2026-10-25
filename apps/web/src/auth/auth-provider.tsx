@@ -1,5 +1,6 @@
 import type { AuthResponse, User } from "@dealership/shared";
 import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
+import { toast } from "sonner";
 import type { AuthApi } from "@/api/auth-api";
 import { ApiError } from "@/api/errors";
 import type { SessionExpiry } from "./session-expiry";
@@ -25,7 +26,7 @@ type AuthProviderProps = {
   children: ReactNode;
 };
 
-export function AuthProvider({ authApi, tokens, children }: AuthProviderProps) {
+export function AuthProvider({ authApi, tokens, sessionExpiry, children }: AuthProviderProps) {
   const [state, setState] = useState<AuthState>(() =>
     tokens.get() ? { status: "loading" } : { status: "signed-out" },
   );
@@ -49,6 +50,19 @@ export function AuthProvider({ authApi, tokens, children }: AuthProviderProps) {
       cancelled = true;
     };
   }, [restoring, authApi, tokens]);
+
+  // Any authenticated request answering 401 ends the session; RequireAuth
+  // then sends the user to /login.
+  useEffect(
+    () =>
+      sessionExpiry.subscribe(() => {
+        tokens.clear();
+        setState({ status: "signed-out" });
+        // One id, so several requests failing together show one toast.
+        toast.error("Session expired — please sign in", { id: "session-expired" });
+      }),
+    [sessionExpiry, tokens],
+  );
 
   const signIn = ({ token, user }: AuthResponse) => {
     tokens.set(token);
