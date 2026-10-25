@@ -32,6 +32,20 @@ export function useInventory(filters: VehicleSearch) {
 
   const refetch = useCallback(() => setVersion((v) => v + 1), []);
 
+  // Local stock change ahead of (or instead of) a refetch, applied to
+  // both the full list and the search results.
+  const setQuantity = useCallback((id: string, quantity: (current: number) => number) => {
+    const patch = (prev: Request<Vehicle[]>) => ({
+      ...prev,
+      data:
+        prev.data?.map((vehicle) =>
+          vehicle.id === id ? { ...vehicle, quantity: quantity(vehicle.quantity) } : vehicle,
+        ) ?? null,
+    });
+    setAll(patch);
+    setFound(patch);
+  }, []);
+
   const shown = searching ? found : all;
   return {
     all: all.data,
@@ -39,6 +53,7 @@ export function useInventory(filters: VehicleSearch) {
     error: all.error ?? shown.error,
     loading: all.loading || shown.loading,
     refetch,
+    setQuantity,
   };
 }
 

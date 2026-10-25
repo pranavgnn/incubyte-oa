@@ -7,7 +7,9 @@ import {
   NoInventory,
   NoMatches,
 } from "@/inventory/inventory-states";
+import { PurchaseButton } from "@/inventory/purchase-button";
 import { useInventory } from "@/inventory/use-inventory";
+import { usePurchase } from "@/inventory/use-purchase";
 import { VehicleCard } from "@/inventory/vehicle-card";
 import { hasActiveFilters, readFilters } from "@/inventory/vehicle-filters";
 import { cn } from "@/lib/utils";
@@ -64,6 +66,7 @@ function InventoryGrid({
   onClearFilters: () => void;
 }) {
   const { results, error, loading, refetch } = inventory;
+  const purchase = usePurchase(inventory);
   if (error) return <InventoryError error={error} onRetry={refetch} />;
   if (!results) return <InventorySkeleton />;
   if (results.length === 0) {
@@ -78,7 +81,10 @@ function InventoryGrid({
     >
       {results.map((vehicle) => (
         <li key={vehicle.id} aria-label={`${vehicle.make} ${vehicle.model}`}>
-          <VehicleCard vehicle={vehicle} />
+          <VehicleCard
+            vehicle={vehicle}
+            purchase={<PurchaseButton vehicle={vehicle} onPurchase={purchase} />}
+          />
         </li>
       ))}
     </ul>
