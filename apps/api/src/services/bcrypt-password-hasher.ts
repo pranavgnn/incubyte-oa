@@ -10,7 +10,8 @@ export class BcryptPasswordHasher implements PasswordHasher {
     return bcrypt.hash(password, COST);
   }
 
-  verify(password: string, hash: string): Promise<boolean> {
+  async verify(password: string, hash: string | undefined): Promise<boolean> {
+    if (hash === undefined) return false;
     return bcrypt.compare(password, hash);
   }
 }

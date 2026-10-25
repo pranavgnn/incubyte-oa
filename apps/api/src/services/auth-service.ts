@@ -16,7 +16,9 @@ export interface UserRepository {
 
 export interface PasswordHasher {
   hash(password: string): Promise<string>;
-  verify(password: string, hash: string): Promise<boolean>;
+  // `hash` is undefined when no user matched. Implementations must still
+  // spend the same time as a real comparison, then return false.
+  verify(password: string, hash: string | undefined): Promise<boolean>;
 }
 
 export interface TokenIssuer {
@@ -38,11 +40,11 @@ export class AuthService {
 
   async login(input: LoginRequest): Promise<AuthResponse> {
     const found = await this.users.findByEmail(input.email);
-    if (!found) throw new UnauthorizedError("Invalid credentials");
-    const { passwordHash, ...user } = found;
-    if (!(await this.passwords.verify(input.password, passwordHash))) {
-      throw new UnauthorizedError("Invalid credentials");
-    }
+    // Verify before branching on `found`, so an unknown email costs the
+    // same as a wrong password.
+    const valid = await this.passwords.verify(input.password, found?.passwordHash);
+    if (!found || !valid) throw new UnauthorizedError("Invalid credentials");
+    const { passwordHash: _hash, ...user } = found;
     return { token: await this.tokens.issue(user), user };
   }
 }
