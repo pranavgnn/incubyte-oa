@@ -1,6 +1,7 @@
 import type { User } from "@dealership/shared";
 import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
 import type { AuthApi } from "@/api/auth-api";
+import { ApiError } from "@/api/errors";
 import type { TokenStorage } from "./token-storage";
 
 export type AuthState =
@@ -27,13 +28,21 @@ export function AuthProvider({ authApi, tokens, children }: AuthProviderProps) {
   useEffect(() => {
     if (!restoring) return;
     let cancelled = false;
-    authApi.me().then((user) => {
-      if (!cancelled) setState({ status: "signed-in", user });
-    });
+    authApi.me().then(
+      (user) => {
+        if (!cancelled) setState({ status: "signed-in", user });
+      },
+      (error: unknown) => {
+        // Only a 401 proves the token is dead; a network blip keeps it
+        // so the next load can try again.
+        if (error instanceof ApiError && error.status === 401) tokens.clear();
+        if (!cancelled) setState({ status: "signed-out" });
+      },
+    );
     return () => {
       cancelled = true;
     };
-  }, [restoring, authApi]);
+  }, [restoring, authApi, tokens]);
 
   return <AuthContext value={{ state }}>{children}</AuthContext>;
 }
