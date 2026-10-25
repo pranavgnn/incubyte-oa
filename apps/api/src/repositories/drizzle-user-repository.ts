@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import type { Database } from "../db/client.js";
 import { users } from "../db/schema.js";
 import { ConflictError } from "../errors/app-error.js";
-import type { NewUser, UserRepository } from "../services/auth-service.js";
+import type { NewUser, UserRepository, UserWithPasswordHash } from "../services/auth-service.js";
 
 // Postgres error code for unique_violation.
 const UNIQUE_VIOLATION = "23505";
@@ -28,9 +28,14 @@ export class DrizzleUserRepository implements UserRepository {
     }
   }
 
-  async findByEmail(email: string): Promise<User | undefined> {
+  async findByEmail(email: string): Promise<UserWithPasswordHash | undefined> {
     const [user] = await this.db
-      .select({ id: users.id, email: users.email, role: users.role })
+      .select({
+        id: users.id,
+        email: users.email,
+        role: users.role,
+        passwordHash: users.passwordHash,
+      })
       .from(users)
       .where(eq(users.email, email));
     return user;
