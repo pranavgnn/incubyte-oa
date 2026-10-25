@@ -18,7 +18,9 @@ export type AppDeps = {
 export function createApp(deps: AppDeps): Express {
   const app = express();
   app.use(helmet());
-  app.use(cors({ origin: deps.config.webOrigin }));
+  // An array makes cors reflect the origin only on an exact match; a plain
+  // string would send the configured origin to every caller.
+  app.use(cors({ origin: [deps.config.webOrigin] }));
   app.use("/api/health", healthRoutes(deps.healthController));
   app.use(notFound);
   app.use(errorHandler);
