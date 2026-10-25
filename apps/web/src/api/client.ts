@@ -42,6 +42,8 @@ export function createApiClient({
   return { request };
 }
 
+export type ApiClient = ReturnType<typeof createApiClient>;
+
 async function send(url: URL, init: RequestInit): Promise<Response> {
   try {
     return await fetch(url, init);
