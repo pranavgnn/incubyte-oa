@@ -12,6 +12,8 @@ export interface VehicleRepository {
   create(vehicle: CreateVehicleRequest): Promise<Vehicle>;
   // undefined when no vehicle has the id.
   update(id: string, changes: UpdateVehicleRequest): Promise<Vehicle | undefined>;
+  // false when no vehicle has the id.
+  delete(id: string): Promise<boolean>;
 }
 
 export class VehicleService {
@@ -33,5 +35,9 @@ export class VehicleService {
     const vehicle = await this.vehicles.update(id, changes);
     if (!vehicle) throw new NotFoundError("Vehicle not found");
     return vehicle;
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.vehicles.delete(id);
   }
 }

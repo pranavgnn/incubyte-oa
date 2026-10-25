@@ -29,5 +29,6 @@ export function vehicleRoutes(controller: VehicleController, authenticate: Reque
     validate({ params: vehicleIdParamsSchema, body: updateVehicleRequestSchema }),
     controller.update,
   );
+  router.delete("/:id", controller.delete);
   return router;
 }

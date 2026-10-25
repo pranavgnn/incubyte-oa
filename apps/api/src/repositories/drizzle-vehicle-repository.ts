@@ -50,6 +50,14 @@ export class DrizzleVehicleRepository implements VehicleRepository {
       .returning();
     return row && toVehicle(row);
   }
+
+  async delete(id: string): Promise<boolean> {
+    const deleted = await this.db
+      .delete(vehicles)
+      .where(eq(vehicles.id, id))
+      .returning({ id: vehicles.id });
+    return deleted.length > 0;
+  }
 }
 
 // Case-insensitive substring match. User input is escaped so %, _ and \
