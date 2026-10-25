@@ -14,5 +14,9 @@ export function createAuthApi(client: ApiClient) {
         schema: authResponseSchema,
       });
     },
+
+    login(_credentials: Credentials): Promise<AuthResponse> {
+      throw new Error("not implemented");
+    },
   };
 }

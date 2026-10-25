@@ -36,4 +36,21 @@ describe("auth api", () => {
     expect(received).toEqual({ email: "alice@example.com", password: "correct horse" });
     expect(session).toEqual({ token: "t0k3n", user });
   });
+
+  it("logs in by posting exactly { email, password } and returns the session", async () => {
+    let received: unknown;
+    server.use(
+      http.post(`${baseUrl}/api/auth/login`, async ({ request }) => {
+        received = await request.json();
+        return HttpResponse.json({ token: "t0k3n", user });
+      }),
+    );
+    const auth = createAuthApi(createApiClient({ baseUrl }));
+    const formValues = { email: "alice@example.com", password: "correct horse", remember: true };
+
+    const session = await auth.login(formValues);
+
+    expect(received).toEqual({ email: "alice@example.com", password: "correct horse" });
+    expect(session).toEqual({ token: "t0k3n", user });
+  });
 });
