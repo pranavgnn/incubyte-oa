@@ -17,6 +17,11 @@ export class ValidationError extends AppError {
   readonly code = "VALIDATION_ERROR";
 }
 
+export class ConflictError extends AppError {
+  readonly status = 409;
+  readonly code = "CONFLICT";
+}
+
 export class ServiceUnavailableError extends AppError {
   readonly status = 503;
   readonly code = "SERVICE_UNAVAILABLE";
