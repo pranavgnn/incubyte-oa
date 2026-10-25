@@ -45,6 +45,12 @@ export type Vehicle = z.infer<typeof vehicleSchema>;
 
 export const vehicleListSchema = z.array(vehicleSchema);
 
+// POST /api/vehicles and PUT /api/vehicles/:id: the editable fields only,
+// never id or timestamps.
+export type VehicleInput = Pick<Vehicle, "make" | "model" | "category" | "price" | "quantity"> & {
+  imageUrl?: string;
+};
+
 // GET /api/vehicles/search. Every key is optional and empty ones are
 // never sent.
 export type VehicleSearch = {

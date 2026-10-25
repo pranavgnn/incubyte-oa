@@ -1,5 +1,10 @@
 import type { ApiClient } from "./client";
-import { type Vehicle, type VehicleSearch, vehicleListSchema } from "./vehicle-contracts";
+import {
+  type Vehicle,
+  type VehicleInput,
+  type VehicleSearch,
+  vehicleListSchema,
+} from "./vehicle-contracts";
 
 export function createVehiclesApi(client: ApiClient) {
   return {
@@ -11,6 +16,26 @@ export function createVehiclesApi(client: ApiClient) {
       return client.request(`/api/vehicles/search?${toQuery(filters)}`, {
         schema: vehicleListSchema,
       });
+    },
+
+    purchase(_id: string): Promise<void> {
+      throw new Error("not implemented");
+    },
+
+    create(_input: VehicleInput): Promise<void> {
+      throw new Error("not implemented");
+    },
+
+    update(_id: string, _input: VehicleInput): Promise<void> {
+      throw new Error("not implemented");
+    },
+
+    restock(_id: string, _quantity: number): Promise<void> {
+      throw new Error("not implemented");
+    },
+
+    remove(_id: string): Promise<void> {
+      throw new Error("not implemented");
     },
   };
 }
