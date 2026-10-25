@@ -1,0 +1,1 @@
+-- Baseline migration. No tables yet; they arrive with the features that need them.
