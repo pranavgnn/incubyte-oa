@@ -12,12 +12,15 @@ type RequestOptions<T> = {
   schema: z.ZodType<T>;
 };
 
-export function createApiClient({ baseUrl }: ApiClientOptions) {
+export function createApiClient({ baseUrl, getToken = () => null }: ApiClientOptions) {
   async function request<T>(
     path: string,
     { method = "GET", schema }: RequestOptions<T>,
   ): Promise<T> {
-    const response = await send(new URL(path, baseUrl), { method });
+    const headers = new Headers();
+    const token = getToken();
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    const response = await send(new URL(path, baseUrl), { method, headers });
     const body = await readJson(response);
     if (!response.ok) {
       const parsed = errorResponseSchema.safeParse(body);
