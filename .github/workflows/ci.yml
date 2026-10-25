@@ -51,6 +51,9 @@ jobs:
 
       - run: pnpm lint
 
+      # Design-system rules (@shadcn/lint) run through oxlint in the web app only.
+      - run: pnpm --filter @dealership/web lint
+
       - run: pnpm typecheck
 
       # The service starts with only the test database; create the dev
@@ -66,3 +69,5 @@ jobs:
       - run: pnpm --filter @dealership/api build
 
       - run: pnpm --filter @dealership/api smoke:bundle
+
+      - run: pnpm --filter @dealership/web build

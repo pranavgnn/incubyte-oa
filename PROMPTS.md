@@ -13,4 +13,4 @@ Raw, unedited AI chat logs. One file per session.
 - [Session 3: login](prompts/api/session-3.md)
 
 ## Web (Claude Code)
-- (added as sessions finish)
+- [Session 0: scaffold and loging + register pages](prompts/web/session-0.md)

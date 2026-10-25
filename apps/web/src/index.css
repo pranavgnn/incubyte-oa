@@ -1,0 +1,185 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "@fontsource-variable/archivo/wdth.css";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --radius: 0.5rem;
+
+  --background: oklch(0.985 0.002 260);
+  --foreground: oklch(0.17 0.01 260);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.17 0.01 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.17 0.01 260);
+
+  --primary: oklch(0.17 0.01 260); /* ink — main CTAs */
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.955 0.004 260);
+  --secondary-foreground: oklch(0.21 0.01 260);
+  --muted: oklch(0.955 0.004 260);
+  --muted-foreground: oklch(0.48 0.012 260);
+  --accent: oklch(0.94 0.008 260); /* hover/selected surfaces */
+  --accent-foreground: oklch(0.17 0.01 260);
+
+  --brand: oklch(0.7 0.14 266); /* periwinkle fill */
+  --brand-foreground: oklch(0.17 0.01 260); /* ink text on brand */
+  --brand-subtle: oklch(0.93 0.035 266); /* featured card tint */
+  --brand-strong: oklch(0.5 0.19 266); /* brand text/links on light */
+
+  --destructive: oklch(0.56 0.21 25);
+  --destructive-foreground: oklch(0.985 0 0);
+  --success: oklch(0.52 0.13 155);
+  --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.78 0.15 75);
+  --warning-foreground: oklch(0.22 0.04 75);
+
+  --border: oklch(0.91 0.005 260);
+  --input: oklch(0.88 0.006 260);
+  --ring: oklch(0.6 0.17 266);
+
+  --hero: oklch(0.145 0.006 260); /* dark band, same in both themes */
+  --hero-foreground: oklch(0.97 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0.006 260);
+  --foreground: oklch(0.96 0.003 260);
+  --card: oklch(0.185 0.007 260);
+  --card-foreground: oklch(0.96 0.003 260);
+  --popover: oklch(0.2 0.008 260);
+  --popover-foreground: oklch(0.96 0.003 260);
+
+  --primary: oklch(0.96 0.003 260); /* white CTAs on dark */
+  --primary-foreground: oklch(0.145 0.006 260);
+  --secondary: oklch(0.24 0.008 260);
+  --secondary-foreground: oklch(0.96 0.003 260);
+  --muted: oklch(0.24 0.008 260);
+  --muted-foreground: oklch(0.7 0.012 260);
+  --accent: oklch(0.26 0.01 260);
+  --accent-foreground: oklch(0.96 0.003 260);
+
+  --brand: oklch(0.74 0.13 266);
+  --brand-foreground: oklch(0.145 0.006 260);
+  --brand-subtle: oklch(0.26 0.05 266);
+  --brand-strong: oklch(0.8 0.11 266);
+
+  --destructive: oklch(0.66 0.2 25);
+  --destructive-foreground: oklch(0.145 0.006 260);
+  --success: oklch(0.72 0.15 155);
+  --success-foreground: oklch(0.145 0.006 260);
+  --warning: oklch(0.82 0.14 80);
+  --warning-foreground: oklch(0.2 0.04 75);
+
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.74 0.13 266);
+
+  --hero: oklch(0.11 0.005 260);
+  --hero-foreground: oklch(0.97 0 0);
+}
+
+@theme inline {
+  /* colors → utilities (bg-brand, text-success, …) */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-subtle: var(--brand-subtle);
+  --color-brand-strong: var(--brand-strong);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-hero: var(--hero);
+  --color-hero-foreground: var(--hero-foreground);
+
+  /* radius */
+  --radius-sm: calc(var(--radius) - 4px); /* 4px  — badges inside inputs, kbd */
+  --radius-md: calc(var(--radius) - 2px); /* 6px  — inputs, selects */
+  --radius-lg: var(--radius); /* 8px  — cards, dialogs */
+  --radius-xl: calc(var(--radius) + 4px); /* 12px — hero search bar, sheets */
+
+  /* fonts */
+  --font-display: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, monospace;
+}
+
+@theme {
+  /* type scale: size / line-height / tracking */
+  --text-display: 3.5rem;
+  --text-display--line-height: 1;
+  --text-display--letter-spacing: -0.03em;
+  --text-h1: 2.5rem;
+  --text-h1--line-height: 1.05;
+  --text-h1--letter-spacing: -0.025em;
+  --text-h2: 1.75rem;
+  --text-h2--line-height: 1.15;
+  --text-h2--letter-spacing: -0.02em;
+  --text-h3: 1.25rem;
+  --text-h3--line-height: 1.3;
+  --text-h3--letter-spacing: -0.01em;
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.55;
+  --text-label: 0.8125rem;
+  --text-label--line-height: 1.3;
+  --text-label--letter-spacing: 0.01em;
+  --text-overline: 0.6875rem;
+  --text-overline--line-height: 1;
+  --text-overline--letter-spacing: 0.14em;
+  --text-price: 1.5rem;
+  --text-price--line-height: 1;
+  --text-price--letter-spacing: -0.02em;
+
+  /* shadows — floating layers only */
+  --shadow-card-hover: 0 1px 2px oklch(0 0 0 / 4%), 0 12px 32px -12px oklch(0 0 0 / 18%);
+  --shadow-overlay: 0 2px 4px oklch(0 0 0 / 6%), 0 24px 64px -16px oklch(0 0 0 / 32%);
+  --shadow-focus: 0 0 0 3px oklch(from var(--ring) l c h / 35%);
+
+  /* layout */
+  --container-page: 80rem; /* max-w-page */
+  --container-form: 26rem; /* max-w-form — auth cards */
+  --container-dialog: 32rem; /* max-w-dialog */
+
+  /* motion */
+  --ease-showroom: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 150ms;
+  --duration-base: 220ms;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans text-body antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-variation-settings: "wdth" 125;
+  }
+}
