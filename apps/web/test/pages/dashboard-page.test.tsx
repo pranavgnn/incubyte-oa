@@ -319,3 +319,44 @@ describe("DashboardPage purchase", () => {
     await vi.waitFor(() => expect(listCalls).toBe(refetches ? 2 : 1));
   });
 });
+
+describe("DashboardPage admin controls", () => {
+  it.each<[Role, number]>([
+    ["admin", 1],
+    ["user", 0],
+  ])("renders Add vehicle and card menus only for admins (%s)", async (role, expected) => {
+    serveInventory();
+
+    renderDashboard("/", role);
+    await cardTitles();
+
+    expect(screen.queryAllByRole("button", { name: "Add vehicle" })).toHaveLength(expected);
+    expect(screen.queryAllByRole("button", { name: /^Actions for / })).toHaveLength(
+      expected * inventory.length,
+    );
+  });
+
+  it.each<[Role, number]>([
+    ["admin", 2],
+    ["user", 0],
+  ])("offers Add vehicle from the empty inventory only to admins (%s)", async (role, expected) => {
+    serveInventory({ all: [] });
+
+    renderDashboard("/", role);
+    await screen.findByRole("heading", { name: "No vehicles yet" });
+
+    expect(screen.queryAllByRole("button", { name: "Add vehicle" })).toHaveLength(expected);
+  });
+
+  it("lists Edit, Restock and Delete in a card's admin menu", async () => {
+    serveInventory();
+    renderDashboard("/", "admin");
+    await cardTitles();
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: "Actions for Tata Nexon" }));
+
+    const items = (await screen.findAllByRole("menuitem")).map((item) => item.textContent);
+    expect(items).toEqual(["Edit", "Restock", "Delete"]);
+  });
+});
