@@ -7,10 +7,11 @@ Raw, unedited AI chat logs. One file per session.
 - [DESIGN.md drafting](https://claude.ai/share/9b0351ce-cd1e-4a79-91ed-ccb088fd1d05)
 
 ## API (Claude Code)
-- [Session 0: scaffold and health endpoint](prompts/api/session-0.md)
-- [Session 1: Vercel deploy](prompts/api/session-1.md)
-- [Session 2: register](prompts/api/session-2.md)
-- [Session 3: login](prompts/api/session-3.md)
+- [Session 0: monorepo scaffold, tooling, CI and health endpoint](prompts/api/session-0.md)
+- [Session 1: Vercel deploy with esbuild prebundle](prompts/api/session-1.md)
+- [Session 2: user registration](prompts/api/session-2.md)
+- [Session 3: login, auth middleware, /me and admin seed](prompts/api/session-3.md)
+- [Session 4: vehicles CRUD, search, purchase, restock and sample data](prompts/api/session-4.md)
 
 ## Web (Claude Code)
-- [Session 0: scaffold and loging + register pages](prompts/web/session-0.md)
+- [Session 0: scaffold, app shell, login and register pages](prompts/web/session-0.md)
