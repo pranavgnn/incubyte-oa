@@ -17,13 +17,29 @@ export function createApiClient({ baseUrl }: ApiClientOptions) {
     { method = "GET", schema }: RequestOptions<T>,
   ): Promise<T> {
     const response = await fetch(new URL(path, baseUrl), { method });
-    const body: unknown = await response.json();
+    const body = await readJson(response);
     if (!response.ok) {
-      const { error } = errorResponseSchema.parse(body);
+      const parsed = errorResponseSchema.safeParse(body);
+      if (!parsed.success) throw unexpectedResponse(response.status);
+      const { error } = parsed.data;
       throw new ApiError(response.status, error.code, error.message, error.details);
     }
-    return schema.parse(body);
+    const parsed = schema.safeParse(body);
+    if (!parsed.success) throw unexpectedResponse(response.status);
+    return parsed.data;
   }
 
   return { request };
+}
+
+async function readJson(response: Response): Promise<unknown> {
+  try {
+    return await response.json();
+  } catch {
+    return undefined;
+  }
+}
+
+function unexpectedResponse(status: number): ApiError {
+  return new ApiError(status, "INTERNAL_ERROR", "Unexpected response from the server");
 }
