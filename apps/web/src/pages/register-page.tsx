@@ -11,6 +11,7 @@ import { applyFormErrors } from "@/auth/apply-form-errors";
 import { authFormErrorMap } from "@/auth/auth-form-errors";
 import { useAuth } from "@/auth/auth-provider";
 import { safeNextPath } from "@/auth/safe-next";
+import { AuthSwitchLink } from "@/components/auth-switch-link";
 import { FormAlert } from "@/components/form-alert";
 import { FormField } from "@/components/form-field";
 import { SubmitButton } from "@/components/submit-button";
@@ -103,6 +104,9 @@ export function RegisterPage() {
             </SubmitButton>
           </FieldGroup>
         </form>
+        <AuthSwitchLink prompt="Already registered?" to="/login">
+          Sign in
+        </AuthSwitchLink>
       </CardContent>
     </Card>
   );
