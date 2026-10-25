@@ -1,0 +1,9 @@
+{
+  "name": "@dealership/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "echo \"web: placeholder until the frontend phase\""
+  }
+}
