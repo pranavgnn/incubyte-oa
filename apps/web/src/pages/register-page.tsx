@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 
 // The API's register schema plus a client-only confirmation. Only email
 // and password are ever sent.
@@ -145,8 +146,15 @@ export function RegisterPage() {
                 <AlertDescription>{formError}</AlertDescription>
               </Alert>
             )}
-            <Button type="submit" className="w-full">
-              Create account
+            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+              {form.formState.isSubmitting ? (
+                <>
+                  <Spinner data-icon="inline-start" />
+                  Creating account…
+                </>
+              ) : (
+                "Create account"
+              )}
             </Button>
           </FieldGroup>
         </form>
