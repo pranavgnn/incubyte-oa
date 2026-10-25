@@ -31,3 +31,4 @@ export function createAuthApi(client: ApiClient) {
     },
   };
 }
+export type AuthApi = ReturnType<typeof createAuthApi>;
