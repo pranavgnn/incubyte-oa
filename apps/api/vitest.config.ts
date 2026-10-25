@@ -19,6 +19,7 @@ export default defineConfig({
         "src/container.ts",
         "src/config/env.ts",
         "src/db/migrate.ts",
+        "src/db/migrator.ts",
         "src/db/seed.ts",
       ],
       reporter: ["text", "html", "lcov"],

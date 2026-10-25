@@ -9,7 +9,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:report": "vitest run --reporter=default --reporter=junit --outputFile.junit=reports/junit.xml"
+    "test:report": "vitest run --reporter=default --reporter=junit --outputFile.junit=reports/junit.xml",
+    "db:migrate": "tsx --env-file-if-exists=.env src/db/migrate.ts",
+    "db:seed": "tsx --env-file-if-exists=.env src/db/seed.ts"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
