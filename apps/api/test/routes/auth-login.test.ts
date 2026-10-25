@@ -66,4 +66,13 @@ describe("POST /api/auth/login", () => {
     expect(response.status).toBe(401);
     expect(response.body).toEqual(INVALID_CREDENTIALS);
   });
+
+  it("trims and lowercases the email, like register does", async () => {
+    await registerUser("alice@example.com", "correct-horse");
+
+    const response = await login({ email: "  Alice@Example.COM ", password: "correct-horse" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.user.email).toBe("alice@example.com");
+  });
 });
