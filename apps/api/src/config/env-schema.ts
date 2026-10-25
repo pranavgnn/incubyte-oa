@@ -19,3 +19,9 @@ export function parseEnv(source: Record<string, string | undefined>): Env {
   }
   return Object.freeze(result.data);
 }
+
+export function resolveTestDatabaseUrl(
+  _env: Pick<Env, "DATABASE_URL" | "TEST_DATABASE_URL">,
+): string {
+  throw new Error("not implemented");
+}
