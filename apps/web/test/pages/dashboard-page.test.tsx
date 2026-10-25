@@ -215,3 +215,107 @@ describe("DashboardPage filter bar", () => {
     expect(screen.queryByRole("button", { name: "Reset" })).not.toBeInTheDocument();
   });
 });
+
+describe("DashboardPage purchase", () => {
+  function nexonCard() {
+    return within(screen.getByRole("listitem", { name: "Tata Nexon" }));
+  }
+
+  it("buys one unit, lowers the units and confirms with a toast", async () => {
+    serveInventory();
+    let purchased: string | null = null;
+    server.use(
+      http.post(`${baseUrl}/api/vehicles/:id/purchase`, ({ params }) => {
+        purchased = String(params.id);
+        return HttpResponse.json({ ...inventory[0], quantity: 4 });
+      }),
+    );
+    renderDashboard();
+    await cardTitles();
+    const user = userEvent.setup();
+
+    await user.click(nexonCard().getByRole("button", { name: "Purchase" }));
+
+    expect(await screen.findByText("Purchased Tata Nexon")).toBeInTheDocument();
+    expect(purchased).toBe(inventory[0]?.id);
+    expect(nexonCard().getByText("4")).toBeInTheDocument();
+  });
+
+  it("disables purchase at zero units and says why", async () => {
+    serveInventory();
+    renderDashboard();
+    await cardTitles();
+
+    const soldOut = within(screen.getByRole("listitem", { name: "Mahindra Thar" })).getByRole(
+      "button",
+      { name: "Sold out" },
+    );
+
+    expect(soldOut).toBeDisabled();
+    expect(soldOut).toHaveAccessibleDescription("Out of stock — check back after restock");
+  });
+
+  it.each<[string, () => Response, string, string, boolean]>([
+    [
+      "OUT_OF_STOCK",
+      () => HttpResponse.json(errorBody("OUT_OF_STOCK", "Out of stock"), { status: 409 }),
+      "Sold out — no units left",
+      "Sold out",
+      true,
+    ],
+    [
+      "NOT_FOUND",
+      () => HttpResponse.json(errorBody("NOT_FOUND", "Vehicle not found"), { status: 404 }),
+      "This vehicle no longer exists",
+      "Purchase",
+      true,
+    ],
+    [
+      "FORBIDDEN",
+      () => HttpResponse.json(errorBody("FORBIDDEN", "Forbidden"), { status: 403 }),
+      "You don't have permission to do that",
+      "Purchase",
+      false,
+    ],
+    [
+      "INTERNAL_ERROR",
+      () => HttpResponse.json(errorBody("INTERNAL_ERROR", "Something broke"), { status: 500 }),
+      "Something broke",
+      "Purchase",
+      false,
+    ],
+    [
+      "a network failure",
+      () => HttpResponse.error(),
+      "Network error — check your connection",
+      "Purchase",
+      false,
+    ],
+  ])("handles %s", async (code, reply, message, buttonAfter, refetches) => {
+    let listCalls = 0;
+    server.use(
+      http.get(`${baseUrl}/api/vehicles`, () => {
+        listCalls += 1;
+        // After a refetch the server reports the stock it really has.
+        const soldOut = code === "OUT_OF_STOCK" && listCalls > 1;
+        return HttpResponse.json(
+          soldOut ? inventory.map((v, i) => (i === 0 ? { ...v, quantity: 0 } : v)) : inventory,
+        );
+      }),
+      http.post(`${baseUrl}/api/vehicles/:id/purchase`, reply),
+    );
+    renderDashboard();
+    await cardTitles();
+    const user = userEvent.setup();
+
+    await user.click(nexonCard().getByRole("button", { name: "Purchase" }));
+
+    expect(await screen.findByText(message)).toBeInTheDocument();
+    await vi.waitFor(() =>
+      expect(nexonCard().getByRole("button", { name: buttonAfter })).toBeInTheDocument(),
+    );
+    const unitsAfter = code === "OUT_OF_STOCK" ? "0" : "5";
+    expect(nexonCard().getByText(unitsAfter)).toBeInTheDocument();
+    await vi.waitFor(() => expect(listCalls).toBe(refetches ? 2 : 1));
+  });
+});
