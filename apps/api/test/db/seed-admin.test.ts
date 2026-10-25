@@ -26,4 +26,19 @@ describe("seedAdmin", () => {
     expect(rows[0]?.role).toBe("admin");
     expect(await bcrypt.compare(credentials.password, rows[0]?.password_hash ?? "")).toBe(true);
   });
+
+  it("resets the password on every run, keeping a single admin row with the same id", async () => {
+    const first = await seedAdmin(testDatabase.db, "admin@example.com", hasher);
+    const [before] = await usersWithEmail("admin@example.com");
+
+    const second = await seedAdmin(testDatabase.db, "admin@example.com", hasher);
+
+    expect(second.password).not.toBe(first.password);
+    const rows = await usersWithEmail("admin@example.com");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.id).toBe(before?.id);
+    const hash = rows[0]?.password_hash ?? "";
+    expect(await bcrypt.compare(second.password, hash)).toBe(true);
+    expect(await bcrypt.compare(first.password, hash)).toBe(false);
+  });
 });
