@@ -1,0 +1,29 @@
+import bcrypt from "bcryptjs";
+import { describe, expect, it } from "vitest";
+import { seedAdmin } from "../../src/db/seed-admin.js";
+import { BcryptPasswordHasher } from "../../src/services/bcrypt-password-hasher.js";
+import { testDatabase } from "../db.js";
+
+type UserRow = { id: string; email: string; role: string; password_hash: string };
+
+async function usersWithEmail(email: string): Promise<UserRow[]> {
+  const { rows } = await testDatabase.pool.query<UserRow>(
+    "SELECT id, email, role, password_hash FROM users WHERE lower(email) = lower($1)",
+    [email],
+  );
+  return rows;
+}
+
+const hasher = new BcryptPasswordHasher();
+
+describe("seedAdmin", () => {
+  it("creates an admin whose stored hash matches the returned password", async () => {
+    const credentials = await seedAdmin(testDatabase.db, "admin@example.com", hasher);
+
+    expect(credentials.email).toBe("admin@example.com");
+    const rows = await usersWithEmail("admin@example.com");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.role).toBe("admin");
+    expect(await bcrypt.compare(credentials.password, rows[0]?.password_hash ?? "")).toBe(true);
+  });
+});
