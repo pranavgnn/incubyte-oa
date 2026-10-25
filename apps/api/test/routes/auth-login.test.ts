@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { jwtVerify } from "jose";
-import request from "supertest";
+import request, { type Response } from "supertest";
 import { describe, expect, it } from "vitest";
 import { users } from "../../src/db/schema.js";
 import { testDatabase } from "../db.js";
@@ -18,6 +18,17 @@ async function registerUser(email: string, password: string) {
   const response = await request(buildApp()).post("/api/auth/register").send({ email, password });
   expect(response.status).toBe(201);
   return response.body.user as { id: string; email: string; role: string };
+}
+
+function expectValidationError(response: Response, path: string[]) {
+  expect(response.status).toBe(400);
+  expect(response.body).toEqual({
+    error: {
+      code: "VALIDATION_ERROR",
+      message: "Request validation failed",
+      details: [{ path, message: expect.any(String) }],
+    },
+  });
 }
 
 function login(body: unknown) {
@@ -88,5 +99,11 @@ describe("POST /api/auth/login", () => {
     const response = await login({ email: "alice@example.com", password: "correct-horse" });
 
     expect(response.status).toBe(200);
+  });
+
+  it("returns 400 VALIDATION_ERROR when the email is invalid", async () => {
+    const response = await login({ email: "not-an-email", password: "correct-horse" });
+
+    expectValidationError(response, ["email"]);
   });
 });
