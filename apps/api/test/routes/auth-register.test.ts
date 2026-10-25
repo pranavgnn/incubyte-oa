@@ -15,6 +15,11 @@ async function storedPasswordHash(userId: string): Promise<string> {
   return rows[0]?.password_hash ?? "";
 }
 
+async function userCount(): Promise<number> {
+  const { rows } = await testDatabase.pool.query<{ count: string }>("SELECT count(*) FROM users");
+  return Number(rows[0]?.count);
+}
+
 function register(body: unknown) {
   return request(buildApp())
     .post("/api/auth/register")
@@ -54,5 +59,19 @@ describe("POST /api/auth/register", () => {
     expect(await bcrypt.compare("correct-horse", hash)).toBe(true);
     expect(bcrypt.getRounds(hash)).toBeGreaterThanOrEqual(12);
     expect(response.text).not.toContain(hash);
+  });
+
+  it("returns 400 VALIDATION_ERROR with the issue in details when the email is invalid", async () => {
+    const response = await register({ email: "not-an-email", password: "correct-horse" });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Request validation failed",
+        details: [{ path: ["email"], message: expect.any(String) }],
+      },
+    });
+    expect(await userCount()).toBe(0);
   });
 });
