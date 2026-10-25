@@ -1,22 +1,20 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { useApi } from "@/api/api-provider";
 import { type LoginRequest, loginRequestSchema } from "@/api/contracts";
 import { ApiError } from "@/api/errors";
-import { toFormErrors } from "@/api/form-errors";
+import { applyFormErrors } from "@/auth/apply-form-errors";
 import { authFormErrorMap } from "@/auth/auth-form-errors";
 import { useAuth } from "@/auth/auth-provider";
 import { safeNextPath } from "@/auth/safe-next";
-import { PasswordInput } from "@/components/password-input";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { FormAlert } from "@/components/form-alert";
+import { FormField } from "@/components/form-field";
+import { SubmitButton } from "@/components/submit-button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { FieldGroup } from "@/components/ui/field";
 
 export function LoginPage() {
   const { authApi } = useApi();
@@ -31,25 +29,19 @@ export function LoginPage() {
 
   const onSubmit = form.handleSubmit(async (credentials) => {
     setFormError(null);
-    let session: Awaited<ReturnType<typeof authApi.login>>;
     try {
-      session = await authApi.login(credentials);
+      const session = await authApi.login(credentials);
+      signIn(session);
+      navigate(safeNextPath(searchParams.get("next")), { replace: true });
+      toast.success(`Welcome back, ${session.user.email}`);
     } catch (error) {
       // The API says "invalid credentials" for both unknown email and wrong password.
       if (error instanceof ApiError && error.code === "UNAUTHORIZED") {
         setFormError("Invalid email or password");
         return;
       }
-      const { fieldErrors, formError } = toFormErrors(error, ["email", "password"] as const);
-      for (const { field, message } of fieldErrors) {
-        form.setError(field, { message }, { shouldFocus: true });
-      }
-      setFormError(formError);
-      return;
+      setFormError(applyFormErrors(error, ["email", "password"] as const, form.setError));
     }
-    signIn(session);
-    navigate(safeNextPath(searchParams.get("next")), { replace: true });
-    toast.success(`Welcome back, ${session.user.email}`);
   });
 
   return (
@@ -63,56 +55,26 @@ export function LoginPage() {
       <CardContent>
         <form noValidate onSubmit={onSubmit}>
           <FieldGroup>
-            <Controller
+            <FormField
+              control={form.control}
               name="email"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="login-email">Email</FieldLabel>
-                  <Input
-                    {...field}
-                    id="login-email"
-                    type="email"
-                    autoComplete="email"
-                    aria-invalid={fieldState.invalid}
-                    aria-describedby={fieldState.invalid ? "login-email-error" : undefined}
-                  />
-                  <FieldError id="login-email-error" errors={[fieldState.error]} />
-                </Field>
-              )}
+              id="login-email"
+              label="Email"
+              type="email"
+              autoComplete="email"
             />
-            <Controller
+            <FormField
+              control={form.control}
               name="password"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="login-password">Password</FieldLabel>
-                  <PasswordInput
-                    {...field}
-                    id="login-password"
-                    autoComplete="current-password"
-                    aria-invalid={fieldState.invalid}
-                    aria-describedby={fieldState.invalid ? "login-password-error" : undefined}
-                  />
-                  <FieldError id="login-password-error" errors={[fieldState.error]} />
-                </Field>
-              )}
+              id="login-password"
+              label="Password"
+              type="password"
+              autoComplete="current-password"
             />
-            {formError && (
-              <Alert variant="destructive">
-                <AlertDescription>{formError}</AlertDescription>
-              </Alert>
-            )}
-            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? (
-                <>
-                  <Spinner data-icon="inline-start" />
-                  Signing in…
-                </>
-              ) : (
-                "Sign in"
-              )}
-            </Button>
+            <FormAlert message={formError} />
+            <SubmitButton pending={form.formState.isSubmitting} pendingLabel="Signing in…">
+              Sign in
+            </SubmitButton>
           </FieldGroup>
         </form>
       </CardContent>
