@@ -1,8 +1,11 @@
 import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import { Pool, type PoolConfig } from "pg";
 import * as schema from "./schema.js";
 
-export function createDb(connectionString: string) {
+export function createDb(
+  connectionString: string,
+  _poolOptions: Omit<PoolConfig, "connectionString"> = {},
+) {
   const pool = new Pool({ connectionString });
   // pg removes the broken idle client itself; without a listener the
   // emitted error would be uncaught and crash the process.

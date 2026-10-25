@@ -14,4 +14,16 @@ describe("createDb", () => {
     consoleError.mockRestore();
     await pool.end();
   });
+
+  it("applies caller pool options so serverless entries can keep the pool small", async () => {
+    const { pool } = createDb("postgres://user:pass@localhost:1/unused", {
+      max: 2,
+      idleTimeoutMillis: 1234,
+    });
+
+    expect(pool.options.max).toBe(2);
+    expect(pool.options.idleTimeoutMillis).toBe(1234);
+
+    await pool.end();
+  });
 });
