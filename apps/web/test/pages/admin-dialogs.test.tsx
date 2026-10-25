@@ -266,3 +266,41 @@ describe("Restock", () => {
     );
   });
 });
+
+describe("Delete vehicle", () => {
+  const nexon = inventory[0] as Vehicle;
+
+  it.each<[string, () => Response, string]>([
+    ["deletes it", () => new HttpResponse(null, { status: 204 }), "Vehicle deleted"],
+    [
+      "reports a vehicle that is already gone",
+      () => HttpResponse.json(errorBody("NOT_FOUND", "Vehicle not found"), { status: 404 }),
+      "This vehicle no longer exists",
+    ],
+  ])("asks to confirm, then %s, closes and refetches", async (_label, reply, message) => {
+    const { lists } = serveInventory();
+    let deleted: string | null = null;
+    server.use(
+      http.delete(`${baseUrl}/api/vehicles/:id`, ({ params }) => {
+        deleted = String(params.id);
+        return reply();
+      }),
+    );
+    renderDashboard("/", "admin");
+    await cardTitles();
+    const user = setupUser();
+
+    await user.click(screen.getByRole("button", { name: "Actions for Tata Nexon" }));
+    await user.click(await screen.findByRole("menuitem", { name: "Delete" }));
+    const confirm = within(await screen.findByRole("alertdialog", { name: "Delete vehicle" }));
+    expect(
+      confirm.getByText("Delete Tata Nexon? This removes it from inventory and can't be undone."),
+    ).toBeInTheDocument();
+    await user.click(confirm.getByRole("button", { name: "Delete" }));
+
+    expect(await screen.findByText(message)).toBeInTheDocument();
+    expect(deleted).toBe(nexon.id);
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    await vi.waitFor(() => expect(lists.count).toBe(2));
+  });
+});
