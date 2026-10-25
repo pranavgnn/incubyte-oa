@@ -4,6 +4,12 @@ export type TokenStorage = {
   clear(): void;
 };
 
-export function createTokenStorage(_storage: Storage): TokenStorage {
-  throw new Error("not implemented");
+const KEY = "dealership.token";
+
+export function createTokenStorage(storage: Storage): TokenStorage {
+  return {
+    get: () => storage.getItem(KEY),
+    set: (token) => storage.setItem(KEY, token),
+    clear: () => storage.removeItem(KEY),
+  };
 }
