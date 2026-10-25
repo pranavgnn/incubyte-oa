@@ -15,7 +15,9 @@ type ThemeProviderProps = {
 };
 
 export function ThemeProvider({ storage, prefersDark, children }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(() => (prefersDark() ? "dark" : "light"));
+  const [theme, setTheme] = useState<Theme>(
+    () => readStoredTheme(storage) ?? (prefersDark() ? "dark" : "light"),
+  );
 
   useLayoutEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -32,6 +34,15 @@ export function ThemeProvider({ storage, prefersDark, children }: ThemeProviderP
   };
 
   return <ThemeContext value={{ theme, toggleTheme }}>{children}</ThemeContext>;
+}
+
+function readStoredTheme(storage: Storage): Theme | null {
+  try {
+    const stored = storage.getItem(KEY);
+    return stored === "light" || stored === "dark" ? stored : null;
+  } catch {
+    return null;
+  }
 }
 
 export function useTheme(): ThemeContextValue {
