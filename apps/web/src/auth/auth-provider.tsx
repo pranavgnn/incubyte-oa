@@ -1,5 +1,5 @@
 import type { User } from "@dealership/shared";
-import { createContext, type ReactNode, useContext, useState } from "react";
+import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
 import type { AuthApi } from "@/api/auth-api";
 import type { TokenStorage } from "./token-storage";
 
@@ -18,8 +18,23 @@ type AuthProviderProps = {
   children: ReactNode;
 };
 
-export function AuthProvider({ children }: AuthProviderProps) {
-  const [state] = useState<AuthState>({ status: "signed-out" });
+export function AuthProvider({ authApi, tokens, children }: AuthProviderProps) {
+  const [state, setState] = useState<AuthState>(() =>
+    tokens.get() ? { status: "loading" } : { status: "signed-out" },
+  );
+  const restoring = state.status === "loading";
+
+  useEffect(() => {
+    if (!restoring) return;
+    let cancelled = false;
+    authApi.me().then((user) => {
+      if (!cancelled) setState({ status: "signed-in", user });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [restoring, authApi]);
+
   return <AuthContext value={{ state }}>{children}</AuthContext>;
 }
 
