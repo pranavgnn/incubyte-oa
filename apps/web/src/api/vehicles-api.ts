@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { ApiClient } from "./client";
 import {
   type Vehicle,
@@ -18,29 +19,41 @@ export function createVehiclesApi(client: ApiClient) {
       });
     },
 
-    purchase(_id: string): Promise<void> {
-      throw new Error("not implemented");
+    async purchase(id: string): Promise<void> {
+      await client.request(`${vehiclePath(id)}/purchase`, { method: "POST", schema: ignored });
     },
 
-    create(_input: VehicleInput): Promise<void> {
-      throw new Error("not implemented");
+    async create(input: VehicleInput): Promise<void> {
+      await client.request("/api/vehicles", { method: "POST", body: input, schema: ignored });
     },
 
-    update(_id: string, _input: VehicleInput): Promise<void> {
-      throw new Error("not implemented");
+    async update(id: string, input: VehicleInput): Promise<void> {
+      await client.request(vehiclePath(id), { method: "PUT", body: input, schema: ignored });
     },
 
-    restock(_id: string, _quantity: number): Promise<void> {
-      throw new Error("not implemented");
+    async restock(id: string, quantity: number): Promise<void> {
+      await client.request(`${vehiclePath(id)}/restock`, {
+        method: "POST",
+        body: { quantity },
+        schema: ignored,
+      });
     },
 
-    remove(_id: string): Promise<void> {
-      throw new Error("not implemented");
+    async remove(id: string): Promise<void> {
+      await client.request(vehiclePath(id), { method: "DELETE", schema: ignored });
     },
   };
 }
 
 export type VehiclesApi = ReturnType<typeof createVehiclesApi>;
+
+// Writes are followed by a refetch of the list, so their response bodies
+// are not relied on (DESIGN.md section 0 does not define them).
+const ignored = z.unknown();
+
+function vehiclePath(id: string): string {
+  return `/api/vehicles/${encodeURIComponent(id)}`;
+}
 
 // Empty strings and missing keys are left out; the API treats a present
 // but empty param as a filter value.
