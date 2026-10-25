@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useApi } from "@/api/api-provider";
 import { type LoginRequest, loginRequestSchema } from "@/api/contracts";
 import { ApiError } from "@/api/errors";
+import { toFormErrors } from "@/api/form-errors";
 import { authFormErrorMap } from "@/auth/auth-form-errors";
 import { useAuth } from "@/auth/auth-provider";
 import { safeNextPath } from "@/auth/safe-next";
@@ -38,7 +39,12 @@ export function LoginPage() {
         setFormError("Invalid email or password");
         return;
       }
-      throw error;
+      const { fieldErrors, formError } = toFormErrors(error, ["email", "password"] as const);
+      for (const { field, message } of fieldErrors) {
+        form.setError(field, { message }, { shouldFocus: true });
+      }
+      setFormError(formError);
+      return;
     }
     signIn(session);
     navigate(safeNextPath(searchParams.get("next")), { replace: true });
