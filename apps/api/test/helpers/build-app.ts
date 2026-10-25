@@ -1,6 +1,9 @@
 import { createApp } from "../../src/app.js";
+import { AuthController } from "../../src/controllers/auth-controller.js";
 import { HealthController } from "../../src/controllers/health-controller.js";
 import { DrizzleHealthRepository } from "../../src/repositories/drizzle-health-repository.js";
+import { DrizzleUserRepository } from "../../src/repositories/drizzle-user-repository.js";
+import { AuthService } from "../../src/services/auth-service.js";
 import { type HealthRepository, HealthService } from "../../src/services/health-service.js";
 import { testDatabase } from "../db.js";
 
@@ -19,6 +22,7 @@ export function buildApp(overrides: Overrides = {}) {
   const healthService = overrides.healthService ?? new HealthService(healthRepository);
   return createApp({
     config: { webOrigin: TEST_WEB_ORIGIN },
+    authController: new AuthController(new AuthService(new DrizzleUserRepository(testDatabase.db))),
     healthController: new HealthController(healthService),
   });
 }
