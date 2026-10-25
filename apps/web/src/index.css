@@ -169,6 +169,16 @@
   --duration-base: 220ms;
 }
 
+/* Tailwind has no theme namespace for durations, so the motion tokens
+   above get their utilities here. */
+@utility duration-fast {
+  transition-duration: var(--duration-fast);
+}
+
+@utility duration-base {
+  transition-duration: var(--duration-base);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
