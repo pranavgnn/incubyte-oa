@@ -16,7 +16,7 @@ export function createApiClient({ baseUrl }: ApiClientOptions) {
     path: string,
     { method = "GET", schema }: RequestOptions<T>,
   ): Promise<T> {
-    const response = await fetch(new URL(path, baseUrl), { method });
+    const response = await send(new URL(path, baseUrl), { method });
     const body = await readJson(response);
     if (!response.ok) {
       const parsed = errorResponseSchema.safeParse(body);
@@ -30,6 +30,14 @@ export function createApiClient({ baseUrl }: ApiClientOptions) {
   }
 
   return { request };
+}
+
+async function send(url: URL, init: RequestInit): Promise<Response> {
+  try {
+    return await fetch(url, init);
+  } catch {
+    throw new ApiError(0, "NETWORK_ERROR", "Network error — check your connection");
+  }
 }
 
 async function readJson(response: Response): Promise<unknown> {
