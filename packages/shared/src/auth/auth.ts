@@ -6,7 +6,7 @@ export type Role = z.infer<typeof roleSchema>;
 
 export const registerRequestSchema = z.strictObject({
   email: z.email(),
-  password: z.string(),
+  password: z.string().min(8),
 });
 
 export type RegisterRequest = z.infer<typeof registerRequestSchema>;
