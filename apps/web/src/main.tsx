@@ -5,6 +5,7 @@ import { RouterProvider } from "react-router/dom";
 import { ApiProvider } from "@/api/api-provider";
 import { createAuthApi } from "@/api/auth-api";
 import { createApiClient } from "@/api/client";
+import { createVehiclesApi } from "@/api/vehicles-api";
 import { AuthProvider } from "@/auth/auth-provider";
 import { createSessionExpiry } from "@/auth/session-expiry";
 import { createTokenStorage } from "@/auth/token-storage";
@@ -23,7 +24,7 @@ const client = createApiClient({
   getToken: tokens.get,
   onUnauthorized: sessionExpiry.notify,
 });
-const api = { authApi: createAuthApi(client) };
+const api = { authApi: createAuthApi(client), vehiclesApi: createVehiclesApi(client) };
 const router = createBrowserRouter(routes);
 
 const root = document.getElementById("root");

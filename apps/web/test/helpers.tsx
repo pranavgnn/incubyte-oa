@@ -5,9 +5,11 @@ import { Toaster } from "sonner";
 import { ApiProvider } from "@/api/api-provider";
 import { createAuthApi } from "@/api/auth-api";
 import { createApiClient } from "@/api/client";
+import { createVehiclesApi } from "@/api/vehicles-api";
 import { AuthProvider } from "@/auth/auth-provider";
 import { createSessionExpiry } from "@/auth/session-expiry";
 import { createTokenStorage } from "@/auth/token-storage";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export const baseUrl = "http://api.test";
 
@@ -31,7 +33,13 @@ export function createTestServices() {
     getToken: tokens.get,
     onUnauthorized: sessionExpiry.notify,
   });
-  return { tokens, sessionExpiry, client, authApi: createAuthApi(client) };
+  return {
+    tokens,
+    sessionExpiry,
+    client,
+    authApi: createAuthApi(client),
+    vehiclesApi: createVehiclesApi(client),
+  };
 }
 
 export type TestServices = ReturnType<typeof createTestServices>;
@@ -45,8 +53,10 @@ export function renderRoutes(routes: RouteObject[], initialPath: string) {
       tokens={services.tokens}
       sessionExpiry={services.sessionExpiry}
     >
-      <ApiProvider api={{ authApi: services.authApi }}>
-        <RouterProvider router={router} />
+      <ApiProvider api={{ authApi: services.authApi, vehiclesApi: services.vehiclesApi }}>
+        <TooltipProvider>
+          <RouterProvider router={router} />
+        </TooltipProvider>
       </ApiProvider>
       <Toaster />
     </AuthProvider>,
