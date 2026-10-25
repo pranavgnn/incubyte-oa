@@ -106,6 +106,29 @@ describe("RegisterPage", () => {
       ),
     );
   });
+
+  it("disables the submit button and shows progress while creating the account", async () => {
+    let respond: () => void = () => {};
+    server.use(
+      http.post(
+        `${baseUrl}/api/auth/register`,
+        () =>
+          new Promise<Response>((resolve) => {
+            respond = () =>
+              resolve(HttpResponse.json({ token: "t0k3n", user: aliceUser }, { status: 201 }));
+          }),
+      ),
+    );
+    renderRegister();
+    const user = userEvent.setup();
+
+    await fillForm(user);
+    await user.click(screen.getByRole("button", { name: "Create account" }));
+
+    expect(await screen.findByRole("button", { name: /Creating account…/ })).toBeDisabled();
+    respond();
+    expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
+  });
 });
 
 async function fillForm(user: ReturnType<typeof userEvent.setup>) {
