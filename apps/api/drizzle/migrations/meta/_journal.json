@@ -43,6 +43,13 @@
       "when": 1792938043301,
       "tag": "0005_create_vehicles",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792938423562,
+      "tag": "0006_vehicle_quantity_non_negative",
+      "breakpoints": true
     }
   ]
 }
