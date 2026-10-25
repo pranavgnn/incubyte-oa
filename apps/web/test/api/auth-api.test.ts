@@ -1,5 +1,5 @@
 import { HttpResponse, http } from "msw";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createAuthApi } from "@/api/auth-api";
 import { createApiClient } from "@/api/client";
 import { server } from "../msw/server";
@@ -52,5 +52,27 @@ describe("auth api", () => {
 
     expect(received).toEqual({ email: "alice@example.com", password: "correct horse" });
     expect(session).toEqual({ token: "t0k3n", user });
+  });
+
+  it("treats a login 401 as wrong credentials, not an expired session", async () => {
+    let authorization: string | null = "unset";
+    server.use(
+      http.post(`${baseUrl}/api/auth/login`, ({ request }) => {
+        authorization = request.headers.get("Authorization");
+        return HttpResponse.json(
+          { error: { code: "UNAUTHORIZED", message: "Invalid credentials", details: [] } },
+          { status: 401 },
+        );
+      }),
+    );
+    const onUnauthorized = vi.fn();
+    const client = createApiClient({ baseUrl, getToken: () => "stale", onUnauthorized });
+    const auth = createAuthApi(client);
+
+    const error = await auth.login({ email: "a@b.co", password: "wrong" }).catch((e) => e);
+
+    expect(error).toMatchObject({ code: "UNAUTHORIZED" });
+    expect(onUnauthorized).not.toHaveBeenCalled();
+    expect(authorization).toBeNull();
   });
 });
