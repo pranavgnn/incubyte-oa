@@ -1,7 +1,8 @@
 import { screen, within } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { describe, expect, it, vi } from "vitest";
-import { cardTitles, renderDashboard, serveInventory } from "../dashboard-helpers";
+import type { Vehicle } from "@/api/vehicle-contracts";
+import { cardTitles, inventory, renderDashboard, serveInventory } from "../dashboard-helpers";
 import { aVehicle } from "../fixtures";
 import { baseUrl, errorBody, setupUser } from "../helpers";
 import { server } from "../msw/server";
@@ -144,5 +145,63 @@ describe("Add vehicle submit", () => {
     await vi.waitFor(() => check(dialog));
     expect(screen.getByRole("dialog", { name: "Add vehicle" })).toBeInTheDocument();
     expect(dialog.getByRole("button", { name: "Add vehicle" })).toBeEnabled();
+  });
+});
+
+describe("Edit vehicle", () => {
+  const nexon = inventory[0] as Vehicle;
+
+  async function openEditDialog() {
+    const { lists } = serveInventory();
+    renderDashboard("/", "admin");
+    await cardTitles();
+    const user = setupUser();
+    await user.click(screen.getByRole("button", { name: "Actions for Tata Nexon" }));
+    await user.click(await screen.findByRole("menuitem", { name: "Edit" }));
+    const dialog = within(await screen.findByRole("dialog", { name: "Edit vehicle" }));
+    return { user, dialog, lists };
+  }
+
+  it("prefills, waits for a change, then saves the full editable payload", async () => {
+    const { user, dialog, lists } = await openEditDialog();
+    let received: { path: string; body: unknown } | null = null;
+    server.use(
+      http.put(`${baseUrl}/api/vehicles/:id`, async ({ request, params }) => {
+        received = { path: String(params.id), body: await request.json() };
+        return HttpResponse.json({ ...nexon, price: 1_300_000 });
+      }),
+    );
+
+    expect(dialog.getByLabelText("Make")).toHaveValue("Tata");
+    expect(dialog.getByLabelText("Price")).toHaveValue("1250000");
+    expect(dialog.getByRole("button", { name: "Save changes" })).toBeDisabled();
+
+    await user.clear(dialog.getByLabelText("Price"));
+    await user.type(dialog.getByLabelText("Price"), "1300000");
+    await user.click(dialog.getByRole("button", { name: "Save changes" }));
+
+    expect(await screen.findByText("Changes saved")).toBeInTheDocument();
+    expect(received).toEqual({
+      path: nexon.id,
+      body: { make: "Tata", model: "Nexon", category: "suv", price: 1_300_000, quantity: 5 },
+    });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await vi.waitFor(() => expect(lists.count).toBe(2));
+  });
+
+  it("closes, toasts and refetches when the vehicle no longer exists", async () => {
+    const { user, dialog, lists } = await openEditDialog();
+    server.use(
+      http.put(`${baseUrl}/api/vehicles/:id`, () =>
+        HttpResponse.json(errorBody("NOT_FOUND", "Vehicle not found"), { status: 404 }),
+      ),
+    );
+
+    await user.type(dialog.getByLabelText("Model"), " EV");
+    await user.click(dialog.getByRole("button", { name: "Save changes" }));
+
+    expect(await screen.findByText("This vehicle no longer exists")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await vi.waitFor(() => expect(lists.count).toBe(2));
   });
 });
