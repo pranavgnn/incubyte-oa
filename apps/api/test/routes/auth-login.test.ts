@@ -59,4 +59,11 @@ describe("POST /api/auth/login", () => {
     expect(response.status).toBe(401);
     expect(response.body).toEqual(INVALID_CREDENTIALS);
   });
+
+  it("returns the same 401 Invalid credentials when the email is not registered", async () => {
+    const response = await login({ email: "nobody@example.com", password: "correct-horse" });
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual(INVALID_CREDENTIALS);
+  });
 });
