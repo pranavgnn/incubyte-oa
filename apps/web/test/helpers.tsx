@@ -1,13 +1,16 @@
 import { render } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { createMemoryRouter, type RouteObject, RouterProvider } from "react-router";
 import { Toaster } from "sonner";
 import { ApiProvider } from "@/api/api-provider";
 import { createAuthApi } from "@/api/auth-api";
 import { createApiClient } from "@/api/client";
+import { createVehiclesApi } from "@/api/vehicles-api";
 import { AuthProvider } from "@/auth/auth-provider";
 import { createSessionExpiry } from "@/auth/session-expiry";
 import { createTokenStorage } from "@/auth/token-storage";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export const baseUrl = "http://api.test";
 
@@ -16,6 +19,12 @@ export const aliceUser = {
   email: "alice@example.com",
   role: "user",
 } as const;
+
+// user-event without its per-keystroke timer; the interactions are the
+// same, the tests just do not wait between them.
+export function setupUser() {
+  return userEvent.setup({ delay: null });
+}
 
 export function errorBody(code: string, message: string, details: unknown[] = []) {
   return { error: { code, message, details } };
@@ -31,7 +40,13 @@ export function createTestServices() {
     getToken: tokens.get,
     onUnauthorized: sessionExpiry.notify,
   });
-  return { tokens, sessionExpiry, client, authApi: createAuthApi(client) };
+  return {
+    tokens,
+    sessionExpiry,
+    client,
+    authApi: createAuthApi(client),
+    vehiclesApi: createVehiclesApi(client),
+  };
 }
 
 export type TestServices = ReturnType<typeof createTestServices>;
@@ -45,8 +60,10 @@ export function renderRoutes(routes: RouteObject[], initialPath: string) {
       tokens={services.tokens}
       sessionExpiry={services.sessionExpiry}
     >
-      <ApiProvider api={{ authApi: services.authApi }}>
-        <RouterProvider router={router} />
+      <ApiProvider api={{ authApi: services.authApi, vehiclesApi: services.vehiclesApi }}>
+        <TooltipProvider>
+          <RouterProvider router={router} />
+        </TooltipProvider>
       </ApiProvider>
       <Toaster />
     </AuthProvider>,

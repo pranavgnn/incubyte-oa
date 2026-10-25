@@ -1,11 +1,10 @@
 import { screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import { RequireAuth } from "@/auth/require-auth";
 import { AppShell } from "@/components/app-shell";
 import { ThemeProvider } from "@/theme/theme-provider";
-import { aliceUser, baseUrl, Page, renderRoutes } from "../helpers";
+import { aliceUser, baseUrl, Page, renderRoutes, setupUser } from "../helpers";
 import { server } from "../msw/server";
 
 function renderShell(user: { id: string; email: string; role: "user" | "admin" }) {
@@ -32,7 +31,7 @@ function renderShell(user: { id: string; email: string; role: "user" | "admin" }
 describe("AppShell user menu", () => {
   it("shows who is signed in and their role", async () => {
     renderShell({ ...aliceUser, role: "admin" });
-    const user = userEvent.setup();
+    const user = setupUser();
 
     await user.click(await screen.findByRole("button", { name: "Account menu" }));
 
@@ -43,7 +42,7 @@ describe("AppShell user menu", () => {
 
   it("signs out and returns to the login page", async () => {
     const { tokens } = renderShell(aliceUser);
-    const user = userEvent.setup();
+    const user = setupUser();
 
     await user.click(await screen.findByRole("button", { name: "Account menu" }));
     await user.click(await screen.findByRole("menuitem", { name: "Sign out" }));

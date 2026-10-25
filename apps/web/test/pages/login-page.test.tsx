@@ -1,9 +1,8 @@
 import { screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import { LoginPage } from "@/pages/login-page";
-import { aliceUser, baseUrl, errorBody, Page, renderRoutes } from "../helpers";
+import { aliceUser, baseUrl, errorBody, Page, renderRoutes, setupUser } from "../helpers";
 import { server } from "../msw/server";
 
 function renderLogin(path = "/login") {
@@ -19,7 +18,7 @@ function renderLogin(path = "/login") {
 describe("LoginPage", () => {
   it("shows inline errors and sends nothing when the email is invalid and the password empty", async () => {
     renderLogin();
-    const user = userEvent.setup();
+    const user = setupUser();
 
     await user.type(screen.getByLabelText("Email"), "not-an-email");
     await user.click(screen.getByRole("button", { name: "Sign in" }));
@@ -41,7 +40,7 @@ describe("LoginPage", () => {
       }),
     );
     const { router, tokens } = renderLogin("/login?next=%2F%3Fmake%3DTata");
-    const user = userEvent.setup();
+    const user = setupUser();
 
     await user.type(screen.getByLabelText("Email"), "  Alice@Example.com ");
     await user.type(screen.getByLabelText("Password"), "correct horse");
@@ -61,7 +60,7 @@ describe("LoginPage", () => {
       ),
     );
     const { router } = renderLogin("/login?next=https%3A%2F%2Fevil.example");
-    const user = userEvent.setup();
+    const user = setupUser();
 
     await user.type(screen.getByLabelText("Email"), "alice@example.com");
     await user.type(screen.getByLabelText("Password"), "correct horse");
@@ -78,7 +77,7 @@ describe("LoginPage", () => {
       ),
     );
     const { router, tokens } = renderLogin();
-    const user = userEvent.setup();
+    const user = setupUser();
 
     await user.type(screen.getByLabelText("Email"), "alice@example.com");
     await user.type(screen.getByLabelText("Password"), "wrong password");
@@ -102,7 +101,7 @@ describe("LoginPage", () => {
       ),
     );
     renderLogin();
-    const user = userEvent.setup();
+    const user = setupUser();
 
     await user.type(screen.getByLabelText("Email"), "alice@example.com");
     await user.type(screen.getByLabelText("Password"), "correct horse");
@@ -118,7 +117,7 @@ describe("LoginPage", () => {
   it("shows other failures, such as a network error, in the inline alert", async () => {
     server.use(http.post(`${baseUrl}/api/auth/login`, () => HttpResponse.error()));
     renderLogin();
-    const user = userEvent.setup();
+    const user = setupUser();
 
     await user.type(screen.getByLabelText("Email"), "alice@example.com");
     await user.type(screen.getByLabelText("Password"), "correct horse");
@@ -141,7 +140,7 @@ describe("LoginPage", () => {
       ),
     );
     renderLogin();
-    const user = userEvent.setup();
+    const user = setupUser();
 
     await user.type(screen.getByLabelText("Email"), "alice@example.com");
     await user.type(screen.getByLabelText("Password"), "correct horse");

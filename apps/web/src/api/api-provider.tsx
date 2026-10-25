@@ -1,7 +1,8 @@
 import { createContext, type ReactNode, useContext } from "react";
 import type { AuthApi } from "./auth-api";
+import type { VehiclesApi } from "./vehicles-api";
 
-export type Api = { authApi: AuthApi };
+export type Api = { authApi: AuthApi; vehiclesApi: VehiclesApi };
 
 const ApiContext = createContext<Api | null>(null);
 

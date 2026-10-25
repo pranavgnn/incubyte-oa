@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import { ThemeProvider, useTheme } from "@/theme/theme-provider";
+import { setupUser } from "../helpers";
 
 afterEach(() => document.documentElement.classList.remove("dark"));
 
@@ -32,7 +32,7 @@ describe("ThemeProvider", () => {
   it("toggles the theme and remembers the choice", async () => {
     renderTheme(false);
 
-    await userEvent.click(screen.getByRole("button", { name: "light" }));
+    await setupUser().click(screen.getByRole("button", { name: "light" }));
 
     expect(screen.getByRole("button", { name: "dark" })).toBeInTheDocument();
     expect(document.documentElement).toHaveClass("dark");
