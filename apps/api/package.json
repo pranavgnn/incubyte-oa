@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@dealership/shared": "workspace:*",
+    "@scalar/express-api-reference": "^0.10.31",
     "@vercel/functions": "^3.10.3",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
