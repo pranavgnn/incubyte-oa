@@ -69,4 +69,14 @@ describe("GET /api/auth/me", () => {
     expect(response.status).toBe(401);
     expect(response.body).toEqual(INVALID_TOKEN);
   });
+
+  it("returns 401 for a token signed with the right secret but an algorithm other than HS256", async () => {
+    const { user } = await registerUser("alice@example.com", "correct-horse");
+    const token = await signToken({ sub: user.id, role: "user" }, { alg: "HS512" });
+
+    const response = await me(`Bearer ${token}`);
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual(INVALID_TOKEN);
+  });
 });
