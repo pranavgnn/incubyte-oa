@@ -1,5 +1,6 @@
 import type { Role } from "@dealership/shared";
-import { jwtVerify } from "jose";
+import { errors, jwtVerify } from "jose";
+import { UnauthorizedError } from "../errors/app-error.js";
 import type { AuthContext, TokenVerifier } from "./auth-service.js";
 
 export class JoseTokenVerifier implements TokenVerifier {
@@ -10,7 +11,16 @@ export class JoseTokenVerifier implements TokenVerifier {
   }
 
   async verify(token: string): Promise<AuthContext> {
-    const { payload } = await jwtVerify(token, this.key);
-    return { userId: payload.sub as string, role: payload.role as Role };
+    try {
+      const { payload } = await jwtVerify(token, this.key);
+      return { userId: payload.sub as string, role: payload.role as Role };
+    } catch (error) {
+      // Malformed, badly signed and expired tokens all throw JOSEError
+      // subclasses; the caller only needs to know the token is no good.
+      if (error instanceof errors.JOSEError) {
+        throw new UnauthorizedError("Invalid or expired token", [], { cause: error });
+      }
+      throw error;
+    }
   }
 }
