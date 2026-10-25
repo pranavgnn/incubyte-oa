@@ -1,16 +1,28 @@
 import type { ApiClient } from "./client";
-import type { Vehicle, VehicleSearch } from "./vehicle-contracts";
+import { type Vehicle, type VehicleSearch, vehicleListSchema } from "./vehicle-contracts";
 
-export function createVehiclesApi(_client: ApiClient) {
+export function createVehiclesApi(client: ApiClient) {
   return {
     list(): Promise<Vehicle[]> {
-      throw new Error("not implemented");
+      return client.request("/api/vehicles", { schema: vehicleListSchema });
     },
 
-    search(_filters: VehicleSearch): Promise<Vehicle[]> {
-      throw new Error("not implemented");
+    search(filters: VehicleSearch): Promise<Vehicle[]> {
+      return client.request(`/api/vehicles/search?${toQuery(filters)}`, {
+        schema: vehicleListSchema,
+      });
     },
   };
 }
 
 export type VehiclesApi = ReturnType<typeof createVehiclesApi>;
+
+// Empty strings and missing keys are left out; the API treats a present
+// but empty param as a filter value.
+function toQuery(filters: VehicleSearch): URLSearchParams {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(filters)) {
+    if (value !== undefined && value !== "") query.set(key, String(value));
+  }
+  return query;
+}
