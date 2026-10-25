@@ -18,6 +18,7 @@ export default defineConfig({
       // Entry points and wiring only; all real logic stays measured.
       exclude: [
         "src/server.ts",
+        "src/vercel.ts",
         "src/container.ts",
         "src/config/env.ts",
         "src/db/migrate.ts",
