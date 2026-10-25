@@ -4,6 +4,7 @@ import { HealthController } from "../../src/controllers/health-controller.js";
 import { DrizzleHealthRepository } from "../../src/repositories/drizzle-health-repository.js";
 import { DrizzleUserRepository } from "../../src/repositories/drizzle-user-repository.js";
 import { AuthService } from "../../src/services/auth-service.js";
+import { BcryptPasswordHasher } from "../../src/services/bcrypt-password-hasher.js";
 import { type HealthRepository, HealthService } from "../../src/services/health-service.js";
 import { JoseTokenIssuer } from "../../src/services/jose-token-issuer.js";
 import { testDatabase } from "../db.js";
@@ -28,6 +29,7 @@ export function buildApp(overrides: Overrides = {}) {
     authController: new AuthController(
       new AuthService(
         new DrizzleUserRepository(testDatabase.db),
+        new BcryptPasswordHasher(),
         new JoseTokenIssuer(TEST_JWT_SECRET, TEST_JWT_EXPIRES_IN),
       ),
     ),
