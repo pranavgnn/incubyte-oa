@@ -8,4 +8,11 @@ describe("parseEnv", () => {
     expect(env).toEqual({ VITE_API_URL: "https://api.example.com" });
     expect(Object.isFrozen(env)).toBe(true);
   });
+
+  it.each([
+    ["missing", {}],
+    ["not a URL", { VITE_API_URL: "localhost:3000" }],
+  ])("rejects a VITE_API_URL that is %s, naming the key", (_label, source) => {
+    expect(() => parseEnv(source)).toThrow(/VITE_API_URL/);
+  });
 });
