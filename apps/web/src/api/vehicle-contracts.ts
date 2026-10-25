@@ -51,6 +51,10 @@ export type VehicleInput = Pick<Vehicle, "make" | "model" | "category" | "price"
   imageUrl?: string;
 };
 
+// PUT /api/vehicles/:id rejects quantity: stock only changes through
+// purchase and restock.
+export type VehicleUpdate = Omit<VehicleInput, "quantity">;
+
 // GET /api/vehicles/search. Every key is optional and empty ones are
 // never sent.
 export type VehicleSearch = {

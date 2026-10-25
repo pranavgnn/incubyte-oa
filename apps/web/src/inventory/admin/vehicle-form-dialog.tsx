@@ -19,7 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   InputGroup,
@@ -48,8 +48,9 @@ type VehicleFormDialogProps = {
   confirmLabel: string;
   pendingLabel: string;
   defaultValues: VehicleFormValues;
-  // Edit: nothing to save until a field differs from the vehicle.
-  requireDirty?: boolean;
+  // Edit: nothing to save until a field differs from the vehicle, and
+  // quantity is shown but never edited (stock changes through restock).
+  editing?: boolean;
   onSubmit: (input: VehicleInput) => Promise<void>;
   // Returns true when the error was dealt with outside the form (toast,
   // closing the dialog); anything else is shown in the form.
@@ -65,7 +66,7 @@ export function VehicleFormDialog({
   confirmLabel,
   pendingLabel,
   defaultValues,
-  requireDirty = false,
+  editing = false,
   onSubmit,
   onError,
   onClose,
@@ -145,8 +146,18 @@ export function VehicleFormDialog({
               name="quantity"
               id={`${id}-quantity`}
               label="Quantity"
+              hint={editing ? "Stock changes only through purchase and restock" : undefined}
             >
-              {(props) => <Input {...props} type="number" min={0} step={1} className="font-mono" />}
+              {(props) => (
+                <Input
+                  {...props}
+                  type="number"
+                  min={0}
+                  step={1}
+                  readOnly={editing}
+                  className="font-mono"
+                />
+              )}
             </FormControl>
             <FormControl
               control={form.control}
@@ -162,7 +173,7 @@ export function VehicleFormDialog({
             <Button type="button" variant="ghost" disabled={pending} onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" disabled={pending || (requireDirty && !form.formState.isDirty)}>
+            <Button type="submit" disabled={pending || (editing && !form.formState.isDirty)}>
               {pending ? (
                 <>
                   <Spinner data-icon="inline-start" />
@@ -197,35 +208,42 @@ function FormControl({
   name,
   id,
   label,
+  hint,
   children,
 }: {
   control: Control<VehicleFormValues, unknown, VehicleFormOutput>;
   name: FieldPath<VehicleFormValues>;
   id: string;
   label: string;
+  hint?: string;
   children: (props: ControlProps) => ReactNode;
 }) {
   const errorId = `${id}-error`;
+  const hintId = `${id}-hint`;
   return (
     <Controller
       control={control}
       name={name}
-      render={({ field, fieldState }) => (
-        <Field data-invalid={fieldState.invalid}>
-          <FieldLabel htmlFor={id}>{label}</FieldLabel>
-          {children({
-            id,
-            name: field.name,
-            value: String(field.value ?? ""),
-            onChange: field.onChange,
-            onBlur: field.onBlur,
-            ref: field.ref,
-            "aria-invalid": fieldState.invalid,
-            "aria-describedby": fieldState.invalid ? errorId : undefined,
-          })}
-          <FieldError id={errorId} errors={[fieldState.error]} />
-        </Field>
-      )}
+      render={({ field, fieldState }) => {
+        const describedBy = [hint && hintId, fieldState.invalid && errorId].filter(Boolean);
+        return (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor={id}>{label}</FieldLabel>
+            {children({
+              id,
+              name: field.name,
+              value: String(field.value ?? ""),
+              onChange: field.onChange,
+              onBlur: field.onBlur,
+              ref: field.ref,
+              "aria-invalid": fieldState.invalid,
+              "aria-describedby": describedBy.length > 0 ? describedBy.join(" ") : undefined,
+            })}
+            {hint && <FieldDescription id={hintId}>{hint}</FieldDescription>}
+            <FieldError id={errorId} errors={[fieldState.error]} />
+          </Field>
+        );
+      }}
     />
   );
 }

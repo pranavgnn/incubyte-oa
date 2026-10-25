@@ -4,6 +4,7 @@ import {
   type Vehicle,
   type VehicleInput,
   type VehicleSearch,
+  type VehicleUpdate,
   vehicleListSchema,
 } from "./vehicle-contracts";
 
@@ -27,8 +28,11 @@ export function createVehiclesApi(client: ApiClient) {
       await client.request("/api/vehicles", { method: "POST", body: input, schema: ignored });
     },
 
-    async update(id: string, input: VehicleInput): Promise<void> {
-      await client.request(vehiclePath(id), { method: "PUT", body: input, schema: ignored });
+    // Picks the fields explicitly: callers may hold a whole vehicle or
+    // form output, and the API answers 400 to quantity or unknown keys.
+    async update(id: string, { make, model, category, price, imageUrl }: VehicleUpdate) {
+      const body = { make, model, category, price, imageUrl };
+      await client.request(vehiclePath(id), { method: "PUT", body, schema: ignored });
     },
 
     async restock(id: string, quantity: number): Promise<void> {

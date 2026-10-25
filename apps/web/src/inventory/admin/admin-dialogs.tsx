@@ -69,7 +69,7 @@ export function AdminDialogs({ dialog, onClose, onChanged }: AdminDialogsProps) 
         confirmLabel="Save changes"
         pendingLabel="Saving…"
         defaultValues={toVehicleForm(vehicle)}
-        requireDirty
+        editing
         onSubmit={async (input) => {
           await vehiclesApi.update(vehicle.id, input);
           succeed("Changes saved");
