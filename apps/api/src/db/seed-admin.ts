@@ -24,11 +24,13 @@ export async function seedAdmin(
   const passwordHash = await passwords.hash(password);
   // Raw SQL because Drizzle's onConflictDoUpdate only accepts columns as
   // the target. The target here is the case-insensitive unique index, so
-  // an existing row is reset whatever case its email was stored in.
+  // an existing row is reset whatever case its email was stored in, and
+  // a regular user who registered that email first is promoted.
   await db.execute(sql`
     INSERT INTO ${users} (email, password_hash, role)
     VALUES (${email}, ${passwordHash}, 'admin')
-    ON CONFLICT (lower(email)) DO UPDATE SET password_hash = EXCLUDED.password_hash
+    ON CONFLICT (lower(email)) DO UPDATE
+      SET password_hash = EXCLUDED.password_hash, role = EXCLUDED.role
   `);
   return { email, password };
 }
