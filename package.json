@@ -12,10 +12,12 @@
     "test:coverage": "pnpm -r --if-present test:coverage",
     "typecheck": "pnpm -r --if-present typecheck",
     "lint": "biome check .",
-    "format": "biome format --write ."
+    "format": "biome format --write .",
+    "prepare": "lefthook install"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.2",
+    "lefthook": "^2.2.2",
     "typescript": "^7.0.2"
   }
 }
