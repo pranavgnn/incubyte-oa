@@ -1,13 +1,16 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { useApi } from "@/api/api-provider";
 import { type LoginRequest, loginRequestSchema } from "@/api/contracts";
+import { ApiError } from "@/api/errors";
 import { authFormErrorMap } from "@/auth/auth-form-errors";
 import { useAuth } from "@/auth/auth-provider";
 import { safeNextPath } from "@/auth/safe-next";
 import { PasswordInput } from "@/components/password-input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -18,13 +21,25 @@ export function LoginPage() {
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [formError, setFormError] = useState<string | null>(null);
   const form = useForm<LoginRequest>({
     resolver: zodResolver(loginRequestSchema, { error: authFormErrorMap }),
     defaultValues: { email: "", password: "" },
   });
 
   const onSubmit = form.handleSubmit(async (credentials) => {
-    const session = await authApi.login(credentials);
+    setFormError(null);
+    let session: Awaited<ReturnType<typeof authApi.login>>;
+    try {
+      session = await authApi.login(credentials);
+    } catch (error) {
+      // The API says "invalid credentials" for both unknown email and wrong password.
+      if (error instanceof ApiError && error.code === "UNAUTHORIZED") {
+        setFormError("Invalid email or password");
+        return;
+      }
+      throw error;
+    }
     signIn(session);
     navigate(safeNextPath(searchParams.get("next")), { replace: true });
     toast.success(`Welcome back, ${session.user.email}`);
@@ -76,6 +91,11 @@ export function LoginPage() {
                 </Field>
               )}
             />
+            {formError && (
+              <Alert variant="destructive">
+                <AlertDescription>{formError}</AlertDescription>
+              </Alert>
+            )}
             <Button type="submit" className="w-full">
               Sign in
             </Button>
