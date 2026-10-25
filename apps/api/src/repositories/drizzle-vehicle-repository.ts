@@ -10,15 +10,6 @@ type VehicleRow = typeof vehicles.$inferSelect;
 export class DrizzleVehicleRepository implements VehicleRepository {
   constructor(private readonly db: Database) {}
 
-  async findAll(): Promise<Vehicle[]> {
-    const rows = await this.db
-      .select()
-      .from(vehicles)
-      // id breaks ties so rows created in the same instant keep a stable order.
-      .orderBy(desc(vehicles.createdAt), desc(vehicles.id));
-    return rows.map(toVehicle);
-  }
-
   async search(filters: VehicleSearchQuery): Promise<Vehicle[]> {
     const rows = await this.db
       .select()
@@ -36,6 +27,7 @@ export class DrizzleVehicleRepository implements VehicleRepository {
           filters.maxPrice === undefined ? undefined : lte(vehicles.price, filters.maxPrice),
         ),
       )
+      // id breaks ties so rows created in the same instant keep a stable order.
       .orderBy(desc(vehicles.createdAt), desc(vehicles.id));
     return rows.map(toVehicle);
   }
