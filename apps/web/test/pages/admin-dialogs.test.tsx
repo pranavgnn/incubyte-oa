@@ -223,14 +223,14 @@ describe("Edit vehicle image", () => {
   });
 
   async function openSeltos() {
-    serveInventory({ all: [seltos] });
+    const { lists } = serveInventory({ all: [seltos] });
     renderDashboard("/", "admin");
     await cardTitles();
     const user = setupUser();
     await user.click(screen.getByRole("button", { name: "Actions for Kia Seltos" }));
     await user.click(await screen.findByRole("menuitem", { name: "Edit" }));
     const dialog = within(await screen.findByRole("dialog", { name: "Edit vehicle" }));
-    return { user, dialog };
+    return { user, dialog, lists };
   }
 
   it("refuses to remove an existing image and sends nothing", async () => {
@@ -245,7 +245,7 @@ describe("Edit vehicle image", () => {
   });
 
   it("sends a replacement image", async () => {
-    const { user, dialog } = await openSeltos();
+    const { user, dialog, lists } = await openSeltos();
     let received: unknown;
     server.use(
       http.put(`${baseUrl}/api/vehicles/:id`, async ({ request }) => {
@@ -260,6 +260,8 @@ describe("Edit vehicle image", () => {
 
     expect(await screen.findByText("Changes saved")).toBeInTheDocument();
     expect(received).toMatchObject({ imageUrl: "https://img.test/seltos-2.webp" });
+    // Wait for the refetch so it cannot land in the next test's handlers.
+    await vi.waitFor(() => expect(lists.count).toBe(2));
   });
 });
 

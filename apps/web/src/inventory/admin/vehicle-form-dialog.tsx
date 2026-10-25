@@ -37,6 +37,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { categoryLabels } from "@/inventory/category-labels";
 import {
+  keepImageFormSchema,
   type VehicleFormOutput,
   type VehicleFormValues,
   vehicleFormFields,
@@ -52,6 +53,8 @@ type VehicleFormDialogProps = {
   // Edit: nothing to save until a field differs from the vehicle, and
   // quantity is shown but never edited (stock changes through restock).
   editing?: boolean;
+  // The vehicle already has an image, which may be replaced but not cleared.
+  keepImage?: boolean;
   onSubmit: (input: CreateVehicleRequest) => Promise<void>;
   // Returns true when the error was dealt with outside the form (toast,
   // closing the dialog); anything else is shown in the form.
@@ -68,6 +71,7 @@ export function VehicleFormDialog({
   pendingLabel,
   defaultValues,
   editing = false,
+  keepImage = false,
   onSubmit,
   onError,
   onClose,
@@ -75,7 +79,7 @@ export function VehicleFormDialog({
   const id = useId();
   const [formError, setFormError] = useState<string | null>(null);
   const form = useForm<VehicleFormValues, unknown, VehicleFormOutput>({
-    resolver: zodResolver(vehicleFormSchema),
+    resolver: zodResolver(keepImage ? keepImageFormSchema : vehicleFormSchema),
     defaultValues,
   });
   const pending = form.formState.isSubmitting;

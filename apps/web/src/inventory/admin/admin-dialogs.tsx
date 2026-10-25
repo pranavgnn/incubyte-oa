@@ -71,6 +71,7 @@ export function AdminDialogs({ dialog, onClose, onChanged }: AdminDialogsProps) 
         pendingLabel="Saving…"
         defaultValues={toVehicleForm(vehicle)}
         editing
+        keepImage={vehicle.imageUrl !== null}
         onSubmit={async (input) => {
           await vehiclesApi.update(vehicle.id, input);
           succeed("Changes saved");
