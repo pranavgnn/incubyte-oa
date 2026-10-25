@@ -58,6 +58,17 @@ export class DrizzleVehicleRepository implements VehicleRepository {
       .returning({ id: vehicles.id });
     return deleted.length > 0;
   }
+
+  // One conditional UPDATE, never read-then-write: concurrent purchases
+  // serialise on the row lock and each re-checks the stock it sees.
+  async decrementQuantity(id: string, amount: number): Promise<Vehicle | undefined> {
+    const [row] = await this.db
+      .update(vehicles)
+      .set({ quantity: sql`${vehicles.quantity} - ${amount}`, updatedAt: sql`now()` })
+      .where(and(eq(vehicles.id, id), gte(vehicles.quantity, amount)))
+      .returning();
+    return row && toVehicle(row);
+  }
 }
 
 // Case-insensitive substring match. User input is escaped so %, _ and \

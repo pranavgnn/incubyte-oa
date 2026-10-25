@@ -14,6 +14,9 @@ export interface VehicleRepository {
   update(id: string, changes: UpdateVehicleRequest): Promise<Vehicle | undefined>;
   // false when no vehicle has the id.
   delete(id: string): Promise<boolean>;
+  // Atomically subtracts `amount` only if that much is in stock; undefined
+  // when the vehicle is missing or has too few units.
+  decrementQuantity(id: string, amount: number): Promise<Vehicle | undefined>;
 }
 
 export class VehicleService {
@@ -39,5 +42,9 @@ export class VehicleService {
 
   async delete(id: string): Promise<void> {
     if (!(await this.vehicles.delete(id))) throw new NotFoundError("Vehicle not found");
+  }
+
+  async purchase(id: string): Promise<Vehicle> {
+    return (await this.vehicles.decrementQuantity(id, 1)) as Vehicle;
   }
 }

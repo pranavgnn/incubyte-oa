@@ -33,6 +33,10 @@ export class VehicleController {
     res.status(200).json(await this.service.update(req.params.id, req.body));
   };
 
+  purchase = async (req: Request<{ id: string }>, res: Response<Vehicle>): Promise<void> => {
+    res.status(200).json(await this.service.purchase(req.params.id));
+  };
+
   delete = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
     await this.service.delete(req.params.id);
     res.status(204).end();

@@ -35,5 +35,7 @@ export function vehicleRoutes(controller: VehicleController, authenticate: Reque
     validate({ params: vehicleIdParamsSchema }),
     controller.delete,
   );
+  // Any signed-in caller may buy.
+  router.post("/:id/purchase", controller.purchase);
   return router;
 }
