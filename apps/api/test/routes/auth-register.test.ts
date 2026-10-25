@@ -85,4 +85,22 @@ describe("POST /api/auth/register", () => {
     ]);
     expect(await userCount()).toBe(0);
   });
+
+  it("returns 400 VALIDATION_ERROR when the password is over 72 bytes in UTF-8, even if under 72 characters", async () => {
+    // 25 characters but 75 bytes: bcrypt would silently ignore everything past byte 72.
+    const response = await register({ email: "alice@example.com", password: "€".repeat(25) });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe("VALIDATION_ERROR");
+    expect(response.body.error.details).toEqual([
+      { path: ["password"], message: expect.any(String) },
+    ]);
+    expect(await userCount()).toBe(0);
+  });
+
+  it("accepts a password of exactly 72 bytes", async () => {
+    const response = await register({ email: "alice@example.com", password: "a".repeat(72) });
+
+    expect(response.status).toBe(201);
+  });
 });
