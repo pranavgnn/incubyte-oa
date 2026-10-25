@@ -11,6 +11,7 @@ export type ApiClientOptions = {
 type RequestOptions<T> = {
   method?: "GET" | "POST" | "PUT" | "DELETE";
   schema: z.ZodType<T>;
+  body?: unknown;
 };
 
 export function createApiClient({
@@ -20,12 +21,17 @@ export function createApiClient({
 }: ApiClientOptions) {
   async function request<T>(
     path: string,
-    { method = "GET", schema }: RequestOptions<T>,
+    { method = "GET", schema, body: payload }: RequestOptions<T>,
   ): Promise<T> {
     const headers = new Headers();
     const token = getToken();
     if (token) headers.set("Authorization", `Bearer ${token}`);
-    const response = await send(new URL(path, baseUrl), { method, headers });
+    const init: RequestInit = { method, headers };
+    if (payload !== undefined) {
+      headers.set("Content-Type", "application/json");
+      init.body = JSON.stringify(payload);
+    }
+    const response = await send(new URL(path, baseUrl), init);
     const body = await readJson(response);
     if (!response.ok) {
       const parsed = errorResponseSchema.safeParse(body);
