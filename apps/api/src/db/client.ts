@@ -4,9 +4,9 @@ import * as schema from "./schema.js";
 
 export function createDb(
   connectionString: string,
-  _poolOptions: Omit<PoolConfig, "connectionString"> = {},
+  poolOptions: Omit<PoolConfig, "connectionString"> = {},
 ) {
-  const pool = new Pool({ connectionString });
+  const pool = new Pool({ ...poolOptions, connectionString });
   // pg removes the broken idle client itself; without a listener the
   // emitted error would be uncaught and crash the process.
   pool.on("error", (error) => {
