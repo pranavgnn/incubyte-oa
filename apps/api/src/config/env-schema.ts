@@ -13,5 +13,9 @@ export const envSchema = z.object({
 export type Env = Readonly<z.infer<typeof envSchema>>;
 
 export function parseEnv(source: Record<string, string | undefined>): Env {
-  return envSchema.parse(source);
+  const result = envSchema.safeParse(source);
+  if (!result.success) {
+    throw new Error(`Invalid environment variables:\n${z.prettifyError(result.error)}`);
+  }
+  return result.data;
 }
