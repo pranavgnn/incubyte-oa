@@ -17,3 +17,7 @@ export function ThemeProvider({ prefersDark, children }: ThemeProviderProps) {
 
   return children;
 }
+
+export function useTheme(): { theme: Theme; toggleTheme(): void } {
+  throw new Error("not implemented");
+}
