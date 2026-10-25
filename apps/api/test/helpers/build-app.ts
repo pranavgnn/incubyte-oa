@@ -8,6 +8,8 @@ import { type HealthRepository, HealthService } from "../../src/services/health-
 import { testDatabase } from "../db.js";
 
 export const TEST_WEB_ORIGIN = "http://localhost:5173";
+export const TEST_JWT_SECRET = "test-only-jwt-secret-at-least-32-characters";
+export const TEST_JWT_EXPIRES_IN = "15m";
 
 type Overrides = {
   healthRepository?: HealthRepository;

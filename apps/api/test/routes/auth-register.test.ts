@@ -1,6 +1,7 @@
+import { jwtVerify } from "jose";
 import request from "supertest";
 import { describe, expect, it } from "vitest";
-import { buildApp } from "../helpers/build-app.js";
+import { buildApp, TEST_JWT_SECRET } from "../helpers/build-app.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -19,5 +20,19 @@ describe("POST /api/auth/register", () => {
       token: expect.any(String),
       user: { id: expect.stringMatching(UUID), email: "alice@example.com", role: "user" },
     });
+  });
+
+  it("signs the token with JWT_SECRET, carrying the user id, role and a 15 minute expiry", async () => {
+    const response = await register({ email: "alice@example.com", password: "correct-horse" });
+
+    const { payload, protectedHeader } = await jwtVerify(
+      response.body.token,
+      new TextEncoder().encode(TEST_JWT_SECRET),
+      { algorithms: ["HS256"] },
+    );
+    expect(protectedHeader.alg).toBe("HS256");
+    expect(payload.sub).toBe(response.body.user.id);
+    expect(payload.role).toBe("user");
+    expect(payload.exp).toBe((payload.iat ?? 0) + 15 * 60);
   });
 });
