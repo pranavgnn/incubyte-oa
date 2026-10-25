@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import { createAuthApi } from "@/api/auth-api";
@@ -19,8 +20,15 @@ function errorBody(code: string, message: string) {
 }
 
 function AuthStatus() {
-  const { state } = useAuth();
-  return <p>{state.status === "signed-in" ? `signed in as ${state.user.email}` : state.status}</p>;
+  const { state, signIn } = useAuth();
+  return (
+    <>
+      <p>{state.status === "signed-in" ? `signed in as ${state.user.email}` : state.status}</p>
+      <button type="button" onClick={() => signIn({ token: "fresh", user })}>
+        Sign in
+      </button>
+    </>
+  );
 }
 
 function renderWithAuth() {
@@ -40,6 +48,15 @@ describe("AuthProvider", () => {
 
     // Unhandled requests fail the test, so reaching this state proves /me was not called.
     expect(await screen.findByText("signed-out")).toBeInTheDocument();
+  });
+
+  it("signs in with a session by storing its token and exposing its user", async () => {
+    const { tokens } = renderWithAuth();
+
+    await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
+
+    expect(screen.getByText("signed in as alice@example.com")).toBeInTheDocument();
+    expect(tokens.get()).toBe("fresh");
   });
 
   it("restores the user from /api/auth/me when a token is stored", async () => {

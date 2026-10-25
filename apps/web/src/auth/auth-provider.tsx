@@ -1,4 +1,4 @@
-import type { User } from "@dealership/shared";
+import type { AuthResponse, User } from "@dealership/shared";
 import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
 import type { AuthApi } from "@/api/auth-api";
 import { ApiError } from "@/api/errors";
@@ -9,7 +9,10 @@ export type AuthState =
   | { status: "signed-out" }
   | { status: "signed-in"; user: User };
 
-type AuthContextValue = { state: AuthState };
+type AuthContextValue = {
+  state: AuthState;
+  signIn(session: AuthResponse): void;
+};
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -44,7 +47,11 @@ export function AuthProvider({ authApi, tokens, children }: AuthProviderProps) {
     };
   }, [restoring, authApi, tokens]);
 
-  return <AuthContext value={{ state }}>{children}</AuthContext>;
+  const signIn = (_session: AuthResponse) => {
+    throw new Error("not implemented");
+  };
+
+  return <AuthContext value={{ state, signIn }}>{children}</AuthContext>;
 }
 
 export function useAuth(): AuthContextValue {
