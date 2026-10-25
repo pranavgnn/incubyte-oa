@@ -1,6 +1,8 @@
 import type { TestProject } from "vitest/node";
 import { resolveTestDatabaseUrl } from "../src/config/env-schema.js";
+import { createDb } from "../src/db/client.js";
 import { migrateDatabase } from "../src/db/migrator.js";
+import { truncateAllTables } from "./truncate.js";
 
 declare module "vitest" {
   export interface ProvidedContext {
@@ -14,6 +16,7 @@ export default async function setup(project: TestProject) {
     const { env } = await import("../src/config/env.js");
     // Throws before any connection is opened if the URL is missing or unsafe.
     const testDatabaseUrl = resolveTestDatabaseUrl(env);
+    await clearLeftoverRows(testDatabaseUrl);
     await migrateDatabase(testDatabaseUrl);
     project.provide("testDatabaseUrl", testDatabaseUrl);
   } catch (error) {
@@ -21,6 +24,18 @@ export default async function setup(project: TestProject) {
     // errors thrown here, so print the reason before rethrowing.
     console.error(`\nTest database setup failed:\n${describe(error)}\n`);
     throw error;
+  }
+}
+
+// Tests truncate before each test, so the last run's rows stay behind.
+// A new migration that adds a constraint (NOT NULL, UNIQUE) would fail on
+// them, so empty the tables before migrating.
+async function clearLeftoverRows(connectionString: string): Promise<void> {
+  const { pool } = createDb(connectionString);
+  try {
+    await truncateAllTables(pool);
+  } finally {
+    await pool.end();
   }
 }
 
