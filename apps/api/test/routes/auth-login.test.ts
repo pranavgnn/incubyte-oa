@@ -1,6 +1,9 @@
+import bcrypt from "bcryptjs";
 import { jwtVerify } from "jose";
 import request from "supertest";
 import { describe, expect, it } from "vitest";
+import { users } from "../../src/db/schema.js";
+import { testDatabase } from "../db.js";
 import { buildApp, TEST_JWT_SECRET } from "../helpers/build-app.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -74,5 +77,16 @@ describe("POST /api/auth/login", () => {
 
     expect(response.status).toBe(200);
     expect(response.body.user.email).toBe("alice@example.com");
+  });
+
+  it("finds a user whose row was stored with capitals, bypassing the schema (e.g. by the seed)", async () => {
+    await testDatabase.db.insert(users).values({
+      email: "Alice@Example.com",
+      passwordHash: await bcrypt.hash("correct-horse", 4),
+    });
+
+    const response = await login({ email: "alice@example.com", password: "correct-horse" });
+
+    expect(response.status).toBe(200);
   });
 });
