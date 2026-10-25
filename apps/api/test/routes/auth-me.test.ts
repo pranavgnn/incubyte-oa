@@ -3,12 +3,7 @@ import { describe, expect, it } from "vitest";
 import { testDatabase } from "../db.js";
 import { buildApp } from "../helpers/build-app.js";
 import { signToken } from "../helpers/tokens.js";
-
-async function registerUser(email: string, password: string) {
-  const response = await request(buildApp()).post("/api/auth/register").send({ email, password });
-  expect(response.status).toBe(201);
-  return response.body as { token: string; user: { id: string; email: string; role: string } };
-}
+import { registerUser } from "../helpers/users.js";
 
 const AUTHENTICATION_REQUIRED = {
   error: { code: "UNAUTHORIZED", message: "Authentication required", details: [] },

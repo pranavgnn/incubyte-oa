@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { users } from "../../src/db/schema.js";
 import { testDatabase } from "../db.js";
 import { buildApp, TEST_JWT_SECRET } from "../helpers/build-app.js";
+import { registerUser } from "../helpers/users.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -13,12 +14,6 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const INVALID_CREDENTIALS = {
   error: { code: "UNAUTHORIZED", message: "Invalid credentials", details: [] },
 };
-
-async function registerUser(email: string, password: string) {
-  const response = await request(buildApp()).post("/api/auth/register").send({ email, password });
-  expect(response.status).toBe(201);
-  return response.body.user as { id: string; email: string; role: string };
-}
 
 function expectValidationError(response: Response, path: string[]) {
   expect(response.status).toBe(400);
@@ -39,7 +34,7 @@ function login(body: unknown) {
 
 describe("POST /api/auth/login", () => {
   it("returns 200 with a token and the user as id, email and role for correct credentials", async () => {
-    const user = await registerUser("alice@example.com", "correct-horse");
+    const { user } = await registerUser("alice@example.com", "correct-horse");
 
     const response = await login({ email: "alice@example.com", password: "correct-horse" });
 
@@ -52,7 +47,7 @@ describe("POST /api/auth/login", () => {
   });
 
   it("signs the token with JWT_SECRET, carrying the user id and role", async () => {
-    const user = await registerUser("alice@example.com", "correct-horse");
+    const { user } = await registerUser("alice@example.com", "correct-horse");
 
     const response = await login({ email: "alice@example.com", password: "correct-horse" });
 
