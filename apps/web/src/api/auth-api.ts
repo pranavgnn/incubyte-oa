@@ -11,6 +11,7 @@ export function createAuthApi(client: ApiClient) {
       return client.request("/api/auth/register", {
         method: "POST",
         body: { email, password },
+        anonymous: true,
         schema: authResponseSchema,
       });
     },
@@ -19,6 +20,7 @@ export function createAuthApi(client: ApiClient) {
       return client.request("/api/auth/login", {
         method: "POST",
         body: { email, password },
+        anonymous: true,
         schema: authResponseSchema,
       });
     },
