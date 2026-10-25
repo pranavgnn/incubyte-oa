@@ -54,7 +54,8 @@ export function AuthProvider({ authApi, tokens, children }: AuthProviderProps) {
   };
 
   const signOut = () => {
-    throw new Error("not implemented");
+    tokens.clear();
+    setState({ status: "signed-out" });
   };
 
   return <AuthContext value={{ state, signIn, signOut }}>{children}</AuthContext>;
