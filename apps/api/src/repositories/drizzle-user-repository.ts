@@ -1,5 +1,5 @@
 import type { User } from "@dealership/shared";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { Database } from "../db/client.js";
 import { users } from "../db/schema.js";
 import { ConflictError } from "../errors/app-error.js";
@@ -37,7 +37,9 @@ export class DrizzleUserRepository implements UserRepository {
         passwordHash: users.passwordHash,
       })
       .from(users)
-      .where(eq(users.email, email));
+      // Same expression as the unique index, so the lookup can use it and
+      // matches rows stored with capitals. `email` arrives lowercased.
+      .where(eq(sql`lower(${users.email})`, email));
     return user;
   }
 }
