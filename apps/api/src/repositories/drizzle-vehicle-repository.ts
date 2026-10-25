@@ -1,5 +1,6 @@
 import type { CreateVehicleRequest, Vehicle, VehicleSearchQuery } from "@dealership/shared";
-import { desc, ilike, or } from "drizzle-orm";
+import { and, desc, eq, gte, ilike, lte, or } from "drizzle-orm";
+import type { PgColumn } from "drizzle-orm/pg-core";
 import type { Database } from "../db/client.js";
 import { vehicles } from "../db/schema.js";
 import type { VehicleRepository } from "../services/vehicle-service.js";
@@ -23,9 +24,17 @@ export class DrizzleVehicleRepository implements VehicleRepository {
       .select()
       .from(vehicles)
       .where(
-        filters.q === undefined
-          ? undefined
-          : or(ilike(vehicles.make, `%${filters.q}%`), ilike(vehicles.model, `%${filters.q}%`)),
+        // and() skips undefined entries, so absent filters drop out.
+        and(
+          filters.q === undefined
+            ? undefined
+            : or(contains(vehicles.make, filters.q), contains(vehicles.model, filters.q)),
+          filters.make === undefined ? undefined : contains(vehicles.make, filters.make),
+          filters.model === undefined ? undefined : contains(vehicles.model, filters.model),
+          filters.category === undefined ? undefined : eq(vehicles.category, filters.category),
+          filters.minPrice === undefined ? undefined : gte(vehicles.price, filters.minPrice),
+          filters.maxPrice === undefined ? undefined : lte(vehicles.price, filters.maxPrice),
+        ),
       )
       .orderBy(desc(vehicles.createdAt), desc(vehicles.id));
     return rows.map(toVehicle);
@@ -35,6 +44,12 @@ export class DrizzleVehicleRepository implements VehicleRepository {
     const [row] = await this.db.insert(vehicles).values(vehicle).returning();
     return toVehicle(row as VehicleRow);
   }
+}
+
+// Case-insensitive substring match. User input is escaped so %, _ and \
+// match themselves instead of acting as LIKE wildcards.
+function contains(column: PgColumn, text: string) {
+  return ilike(column, `%${text.replace(/[\\%_]/g, "\\$&")}%`);
 }
 
 function toVehicle(row: VehicleRow): Vehicle {

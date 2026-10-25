@@ -52,8 +52,19 @@ export const createVehicleRequestSchema = z.strictObject({
 
 export type CreateVehicleRequest = z.infer<typeof createVehicleRequestSchema>;
 
+// Query strings arrive as text; coerce, then hold to the same int32
+// range as the price column.
+const priceFilterSchema = z.coerce.number().pipe(z.int32().nonnegative());
+
 export const vehicleSearchQuerySchema = z.strictObject({
-  q: z.string().optional(),
+  // Partial, case-insensitive match on make or model.
+  q: z.string().trim().optional(),
+  make: z.string().trim().optional(),
+  model: z.string().trim().optional(),
+  category: vehicleCategorySchema.optional(),
+  // Inclusive bounds.
+  minPrice: priceFilterSchema.optional(),
+  maxPrice: priceFilterSchema.optional(),
 });
 
 export type VehicleSearchQuery = z.infer<typeof vehicleSearchQuerySchema>;
