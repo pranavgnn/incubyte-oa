@@ -61,3 +61,8 @@ jobs:
       - run: pnpm --filter @dealership/api db:migrate
 
       - run: pnpm test:coverage
+
+      # Vercel deploys dist/index.js, not the source the tests ran against.
+      - run: pnpm --filter @dealership/api build
+
+      - run: pnpm --filter @dealership/api smoke:bundle
