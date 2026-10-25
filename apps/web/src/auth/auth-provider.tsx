@@ -47,8 +47,9 @@ export function AuthProvider({ authApi, tokens, children }: AuthProviderProps) {
     };
   }, [restoring, authApi, tokens]);
 
-  const signIn = (_session: AuthResponse) => {
-    throw new Error("not implemented");
+  const signIn = ({ token, user }: AuthResponse) => {
+    tokens.set(token);
+    setState({ status: "signed-in", user });
   };
 
   return <AuthContext value={{ state, signIn }}>{children}</AuthContext>;
