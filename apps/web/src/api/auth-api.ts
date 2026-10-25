@@ -15,8 +15,12 @@ export function createAuthApi(client: ApiClient) {
       });
     },
 
-    login(_credentials: Credentials): Promise<AuthResponse> {
-      throw new Error("not implemented");
+    login({ email, password }: Credentials): Promise<AuthResponse> {
+      return client.request("/api/auth/login", {
+        method: "POST",
+        body: { email, password },
+        schema: authResponseSchema,
+      });
     },
   };
 }
