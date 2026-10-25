@@ -1,8 +1,10 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import { LoginPage } from "@/pages/login-page";
-import { Page, renderRoutes } from "../helpers";
+import { aliceUser, baseUrl, Page, renderRoutes } from "../helpers";
+import { server } from "../msw/server";
 
 function renderLogin(path = "/login") {
   return renderRoutes(
@@ -28,5 +30,44 @@ describe("LoginPage", () => {
     );
     expect(screen.getByLabelText("Password")).toHaveAccessibleDescription("Enter your password");
     expect(screen.getByLabelText("Email")).toHaveFocus();
+  });
+
+  it("signs in, goes to the page in next and welcomes the user", async () => {
+    let received: unknown;
+    server.use(
+      http.post(`${baseUrl}/api/auth/login`, async ({ request }) => {
+        received = await request.json();
+        return HttpResponse.json({ token: "t0k3n", user: aliceUser });
+      }),
+    );
+    const { router, tokens } = renderLogin("/login?next=%2F%3Fmake%3DTata");
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText("Email"), "  Alice@Example.com ");
+    await user.type(screen.getByLabelText("Password"), "correct horse");
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+
+    expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
+    expect(router.state.location.search).toBe("?make=Tata");
+    expect(received).toEqual({ email: "alice@example.com", password: "correct horse" });
+    expect(tokens.get()).toBe("t0k3n");
+    expect(await screen.findByText("Welcome back, alice@example.com")).toBeInTheDocument();
+  });
+
+  it("ignores a next that points off-site", async () => {
+    server.use(
+      http.post(`${baseUrl}/api/auth/login`, () =>
+        HttpResponse.json({ token: "t0k3n", user: aliceUser }),
+      ),
+    );
+    const { router } = renderLogin("/login?next=https%3A%2F%2Fevil.example");
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText("Email"), "alice@example.com");
+    await user.type(screen.getByLabelText("Password"), "correct horse");
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+
+    expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/");
   });
 });
