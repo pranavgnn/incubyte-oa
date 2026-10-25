@@ -36,6 +36,6 @@ export function vehicleRoutes(controller: VehicleController, authenticate: Reque
     controller.delete,
   );
   // Any signed-in caller may buy.
-  router.post("/:id/purchase", controller.purchase);
+  router.post("/:id/purchase", validate({ params: vehicleIdParamsSchema }), controller.purchase);
   return router;
 }

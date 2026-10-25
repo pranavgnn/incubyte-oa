@@ -59,6 +59,14 @@ export class DrizzleVehicleRepository implements VehicleRepository {
     return deleted.length > 0;
   }
 
+  async exists(id: string): Promise<boolean> {
+    const [row] = await this.db
+      .select({ id: vehicles.id })
+      .from(vehicles)
+      .where(eq(vehicles.id, id));
+    return row !== undefined;
+  }
+
   // One conditional UPDATE, never read-then-write: concurrent purchases
   // serialise on the row lock and each re-checks the stock it sees.
   async decrementQuantity(id: string, amount: number): Promise<Vehicle | undefined> {

@@ -4,7 +4,7 @@ import type {
   Vehicle,
   VehicleSearchQuery,
 } from "@dealership/shared";
-import { NotFoundError } from "../errors/app-error.js";
+import { NotFoundError, OutOfStockError } from "../errors/app-error.js";
 
 export interface VehicleRepository {
   // Newest first; every given filter must match, so {} returns everything.
@@ -14,6 +14,7 @@ export interface VehicleRepository {
   update(id: string, changes: UpdateVehicleRequest): Promise<Vehicle | undefined>;
   // false when no vehicle has the id.
   delete(id: string): Promise<boolean>;
+  exists(id: string): Promise<boolean>;
   // Atomically subtracts `amount` only if that much is in stock; undefined
   // when the vehicle is missing or has too few units.
   decrementQuantity(id: string, amount: number): Promise<Vehicle | undefined>;
@@ -45,6 +46,10 @@ export class VehicleService {
   }
 
   async purchase(id: string): Promise<Vehicle> {
-    return (await this.vehicles.decrementQuantity(id, 1)) as Vehicle;
+    const vehicle = await this.vehicles.decrementQuantity(id, 1);
+    if (vehicle) return vehicle;
+    // The update matched nothing: either the id is unknown or stock ran out.
+    if (await this.vehicles.exists(id)) throw new OutOfStockError("Vehicle is out of stock");
+    throw new NotFoundError("Vehicle not found");
   }
 }
