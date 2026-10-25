@@ -1,7 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
+import { useNavigate, useSearchParams } from "react-router";
+import { toast } from "sonner";
+import { useApi } from "@/api/api-provider";
 import { type LoginRequest, loginRequestSchema } from "@/api/contracts";
 import { authFormErrorMap } from "@/auth/auth-form-errors";
+import { useAuth } from "@/auth/auth-provider";
+import { safeNextPath } from "@/auth/safe-next";
 import { PasswordInput } from "@/components/password-input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,12 +14,21 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input";
 
 export function LoginPage() {
+  const { authApi } = useApi();
+  const { signIn } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const form = useForm<LoginRequest>({
     resolver: zodResolver(loginRequestSchema, { error: authFormErrorMap }),
     defaultValues: { email: "", password: "" },
   });
 
-  const onSubmit = form.handleSubmit(() => {});
+  const onSubmit = form.handleSubmit(async (credentials) => {
+    const session = await authApi.login(credentials);
+    signIn(session);
+    navigate(safeNextPath(searchParams.get("next")), { replace: true });
+    toast.success(`Welcome back, ${session.user.email}`);
+  });
 
   return (
     <Card className="w-full max-w-form">
