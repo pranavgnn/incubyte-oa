@@ -6,16 +6,24 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("BcryptPasswordHasher.verify", () => {
-  it("returns false for a missing hash after a real bcrypt comparison at the same cost as stored hashes", async () => {
-    const hasher = new BcryptPasswordHasher();
-    const compare = vi.spyOn(bcrypt, "compare");
+describe("BcryptPasswordHasher", () => {
+  it.each([4, 12])("hashes at the injected cost %i", async (cost) => {
+    const hasher = new BcryptPasswordHasher(cost);
 
-    expect(await hasher.verify("correct-horse", undefined)).toBe(false);
-
-    expect(compare).toHaveBeenCalledTimes(1);
-    const [, comparedHash] = compare.mock.calls[0] ?? [];
-    const storedCost = bcrypt.getRounds(await hasher.hash("correct-horse"));
-    expect(bcrypt.getRounds(String(comparedHash))).toBe(storedCost);
+    expect(bcrypt.getRounds(await hasher.hash("correct-horse"))).toBe(cost);
   });
+
+  it.each([4, 12])(
+    "returns false for a missing hash after a real bcrypt comparison at cost %i, the same as stored hashes",
+    async (cost) => {
+      const hasher = new BcryptPasswordHasher(cost);
+      const compare = vi.spyOn(bcrypt, "compare");
+
+      expect(await hasher.verify("correct-horse", undefined)).toBe(false);
+
+      expect(compare).toHaveBeenCalledTimes(1);
+      const [, comparedHash] = compare.mock.calls[0] ?? [];
+      expect(bcrypt.getRounds(String(comparedHash))).toBe(cost);
+    },
+  );
 });
