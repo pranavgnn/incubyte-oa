@@ -1,9 +1,9 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import { RegisterPage } from "@/pages/register-page";
-import { aliceUser, baseUrl, Page, renderRoutes } from "../helpers";
+import { aliceUser, baseUrl, errorBody, Page, renderRoutes } from "../helpers";
 import { server } from "../msw/server";
 
 function renderRegister(path = "/register") {
@@ -60,6 +60,51 @@ describe("RegisterPage", () => {
     expect(
       await screen.findByText("Account created — signed in as alice@example.com"),
     ).toBeInTheDocument();
+  });
+
+  it("marks the email field when the account already exists", async () => {
+    server.use(
+      http.post(`${baseUrl}/api/auth/register`, () =>
+        HttpResponse.json(errorBody("CONFLICT", "Email is already registered"), { status: 409 }),
+      ),
+    );
+    const { tokens } = renderRegister();
+    const user = userEvent.setup();
+
+    await fillForm(user);
+    await user.click(screen.getByRole("button", { name: "Create account" }));
+
+    await waitFor(() =>
+      expect(screen.getByLabelText("Email")).toHaveAccessibleDescription(
+        "An account with this email already exists",
+      ),
+    );
+    expect(screen.getByLabelText("Email")).toHaveFocus();
+    expect(tokens.get()).toBeNull();
+  });
+
+  it("puts server validation errors on their fields", async () => {
+    server.use(
+      http.post(`${baseUrl}/api/auth/register`, () =>
+        HttpResponse.json(
+          errorBody("VALIDATION_ERROR", "Request validation failed", [
+            { path: ["password"], message: "Password must be at most 72 bytes" },
+          ]),
+          { status: 400 },
+        ),
+      ),
+    );
+    renderRegister();
+    const user = userEvent.setup();
+
+    await fillForm(user);
+    await user.click(screen.getByRole("button", { name: "Create account" }));
+
+    await waitFor(() =>
+      expect(screen.getByLabelText("Password")).toHaveAccessibleDescription(
+        "At least 8 characters, up to 72 bytes. Password must be at most 72 bytes",
+      ),
+    );
   });
 });
 
