@@ -4,7 +4,7 @@ import request, { type Response } from "supertest";
 import { describe, expect, it } from "vitest";
 import { users } from "../../src/db/schema.js";
 import { testDatabase } from "../db.js";
-import { buildApp, TEST_JWT_SECRET } from "../helpers/build-app.js";
+import { buildApp, TEST_BCRYPT_COST, TEST_JWT_SECRET } from "../helpers/build-app.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -71,13 +71,14 @@ describe("POST /api/auth/register", () => {
     expect(payload.exp).toBe((payload.iat ?? 0) + 15 * 60);
   });
 
-  it("stores a bcrypt hash of the password with cost of at least 12, never the password itself", async () => {
+  it("stores a bcrypt hash of the password at the wired cost, never the password itself", async () => {
     const response = await register({ email: "alice@example.com", password: "correct-horse" });
 
     const hash = await storedPasswordHash(response.body.user.id);
     expect(hash).not.toBe("correct-horse");
     expect(await bcrypt.compare("correct-horse", hash)).toBe(true);
-    expect(bcrypt.getRounds(hash)).toBeGreaterThanOrEqual(12);
+    // Production cost 12 is asserted in container.test.ts.
+    expect(bcrypt.getRounds(hash)).toBe(TEST_BCRYPT_COST);
     expect(response.text).not.toContain(hash);
   });
 

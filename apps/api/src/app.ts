@@ -3,11 +3,13 @@ import express, { type Express } from "express";
 import helmet from "helmet";
 import type { AuthController } from "./controllers/auth-controller.js";
 import type { HealthController } from "./controllers/health-controller.js";
+import type { VehicleController } from "./controllers/vehicle-controller.js";
 import { authenticate } from "./middleware/authenticate.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { notFound } from "./middleware/not-found.js";
 import { authRoutes } from "./routes/auth.js";
 import { healthRoutes } from "./routes/health.js";
+import { vehicleRoutes } from "./routes/vehicles.js";
 import type { TokenVerifier } from "./services/auth-service.js";
 
 export type AppConfig = {
@@ -18,6 +20,7 @@ export type AppDeps = {
   config: AppConfig;
   authController: AuthController;
   healthController: HealthController;
+  vehicleController: VehicleController;
   tokenVerifier: TokenVerifier;
 };
 
@@ -30,7 +33,9 @@ export function createApp(deps: AppDeps): Express {
   // Every request body in this API is a small JSON object; a tight limit
   // keeps oversized payloads from tying up the parser.
   app.use(express.json({ limit: "10kb" }));
-  app.use("/api/auth", authRoutes(deps.authController, authenticate(deps.tokenVerifier)));
+  const requireAuth = authenticate(deps.tokenVerifier);
+  app.use("/api/auth", authRoutes(deps.authController, requireAuth));
+  app.use("/api/vehicles", vehicleRoutes(deps.vehicleController, requireAuth));
   app.use("/api/health", healthRoutes(deps.healthController));
   app.use(notFound);
   app.use(errorHandler);

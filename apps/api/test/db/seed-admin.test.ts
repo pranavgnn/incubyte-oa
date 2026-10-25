@@ -4,6 +4,7 @@ import { users } from "../../src/db/schema.js";
 import { runSeed, seedAdmin } from "../../src/db/seed-admin.js";
 import { BcryptPasswordHasher } from "../../src/services/bcrypt-password-hasher.js";
 import { testDatabase } from "../db.js";
+import { TEST_BCRYPT_COST } from "../helpers/build-app.js";
 
 type UserRow = { id: string; email: string; role: string; password_hash: string };
 
@@ -15,7 +16,7 @@ async function usersWithEmail(email: string): Promise<UserRow[]> {
   return rows;
 }
 
-const hasher = new BcryptPasswordHasher();
+const hasher = new BcryptPasswordHasher(TEST_BCRYPT_COST);
 
 describe("seedAdmin", () => {
   it("creates an admin whose stored hash matches the returned password", async () => {

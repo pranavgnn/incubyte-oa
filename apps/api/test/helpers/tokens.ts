@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { type JWTPayload, SignJWT } from "jose";
 import { TEST_JWT_SECRET } from "./build-app.js";
 
@@ -18,4 +19,10 @@ export function signToken(claims: JWTPayload, options: SignOptions = {}): Promis
     .setIssuedAt()
     .setExpirationTime(expiresAt)
     .sign(new TextEncoder().encode(secret));
+}
+
+// A valid bearer header for a caller with the given role. authenticate
+// trusts the verified claims, so no user row is needed.
+export async function bearer(role: "user" | "admin"): Promise<string> {
+  return `Bearer ${await signToken({ sub: randomUUID(), role })}`;
 }

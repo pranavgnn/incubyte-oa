@@ -46,3 +46,8 @@ export class NotFoundError extends AppError {
   readonly status = 404;
   readonly code = "NOT_FOUND";
 }
+
+export class OutOfStockError extends AppError {
+  readonly status = 409;
+  readonly code = "OUT_OF_STOCK";
+}

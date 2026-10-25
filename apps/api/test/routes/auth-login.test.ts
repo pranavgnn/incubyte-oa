@@ -6,7 +6,7 @@ import { users } from "../../src/db/schema.js";
 import { seedAdmin } from "../../src/db/seed-admin.js";
 import { BcryptPasswordHasher } from "../../src/services/bcrypt-password-hasher.js";
 import { testDatabase } from "../db.js";
-import { buildApp, TEST_JWT_SECRET } from "../helpers/build-app.js";
+import { buildApp, TEST_BCRYPT_COST, TEST_JWT_SECRET } from "../helpers/build-app.js";
 import { registerUser } from "../helpers/users.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -145,7 +145,11 @@ describe("POST /api/auth/login", () => {
   });
 
   it("logs in the seeded admin with the printed password and reports the admin role", async () => {
-    const admin = await seedAdmin(testDatabase.db, "admin@example.com", new BcryptPasswordHasher());
+    const admin = await seedAdmin(
+      testDatabase.db,
+      "admin@example.com",
+      new BcryptPasswordHasher(TEST_BCRYPT_COST),
+    );
 
     const response = await login(admin);
 
