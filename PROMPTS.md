@@ -12,6 +12,7 @@ Raw, unedited AI chat logs. One file per session.
 - [Session 2: user registration](prompts/api/session-2.md)
 - [Session 3: login, auth middleware, /me and admin seed](prompts/api/session-3.md)
 - [Session 4: vehicles CRUD, search, purchase, restock and sample data](prompts/api/session-4.md)
+- [Session 5: OpenAPI 3.1 spec generated from the shared Zod schemas, rendered with Scalar](prompts/api/session-5.md)
 
 ## Web (Claude Code)
 - [Session 0: scaffold, app shell, login and register pages](prompts/web/session-0.md)
