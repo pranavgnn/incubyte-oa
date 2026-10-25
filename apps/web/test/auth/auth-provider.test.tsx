@@ -57,4 +57,18 @@ describe("AuthProvider", () => {
     expect(screen.getByText("loading")).toBeInTheDocument();
     expect(await screen.findByText("signed in as alice@example.com")).toBeInTheDocument();
   });
+
+  it("clears the stored token and signs out when /api/auth/me answers 401", async () => {
+    localStorage.setItem("dealership.token", "expired");
+    server.use(
+      http.get(`${baseUrl}/api/auth/me`, () =>
+        HttpResponse.json(errorBody("UNAUTHORIZED", "Invalid or expired token"), { status: 401 }),
+      ),
+    );
+
+    const { tokens } = renderWithAuth();
+
+    expect(await screen.findByText("signed-out")).toBeInTheDocument();
+    expect(tokens.get()).toBeNull();
+  });
 });
