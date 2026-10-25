@@ -215,6 +215,54 @@ describe("Edit vehicle", () => {
   });
 });
 
+describe("Edit vehicle image", () => {
+  const seltos = aVehicle({
+    make: "Kia",
+    model: "Seltos",
+    imageUrl: "https://img.test/seltos.webp",
+  });
+
+  async function openSeltos() {
+    serveInventory({ all: [seltos] });
+    renderDashboard("/", "admin");
+    await cardTitles();
+    const user = setupUser();
+    await user.click(screen.getByRole("button", { name: "Actions for Kia Seltos" }));
+    await user.click(await screen.findByRole("menuitem", { name: "Edit" }));
+    const dialog = within(await screen.findByRole("dialog", { name: "Edit vehicle" }));
+    return { user, dialog };
+  }
+
+  it("refuses to remove an existing image and sends nothing", async () => {
+    const { user, dialog } = await openSeltos();
+
+    await user.clear(dialog.getByLabelText("Image URL"));
+    await user.click(dialog.getByRole("button", { name: "Save changes" }));
+
+    expect(dialog.getByLabelText("Image URL")).toHaveAccessibleDescription(
+      "An image can be replaced but not removed",
+    );
+  });
+
+  it("sends a replacement image", async () => {
+    const { user, dialog } = await openSeltos();
+    let received: unknown;
+    server.use(
+      http.put(`${baseUrl}/api/vehicles/:id`, async ({ request }) => {
+        received = await request.json();
+        return HttpResponse.json(seltos);
+      }),
+    );
+
+    await user.clear(dialog.getByLabelText("Image URL"));
+    await user.type(dialog.getByLabelText("Image URL"), "https://img.test/seltos-2.webp");
+    await user.click(dialog.getByRole("button", { name: "Save changes" }));
+
+    expect(await screen.findByText("Changes saved")).toBeInTheDocument();
+    expect(received).toMatchObject({ imageUrl: "https://img.test/seltos-2.webp" });
+  });
+});
+
 describe("Restock", () => {
   const punch = inventory[2] as Vehicle;
 
