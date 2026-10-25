@@ -9,4 +9,10 @@ describe("resolveTestDatabaseUrl", () => {
       "TEST_DATABASE_URL is not set",
     );
   });
+
+  it("refuses to run when TEST_DATABASE_URL is the same as DATABASE_URL", () => {
+    expect(() => resolveTestDatabaseUrl({ DATABASE_URL, TEST_DATABASE_URL: DATABASE_URL })).toThrow(
+      "TEST_DATABASE_URL must differ from DATABASE_URL",
+    );
+  });
 });
