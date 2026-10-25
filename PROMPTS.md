@@ -17,3 +17,7 @@ Raw, unedited AI chat logs. One file per session.
 ## Web (Claude Code)
 - [Session 0: scaffold, app shell, login and register pages](prompts/web/session-0.md)
 - [Session 1: dashboard, filters, purchase and admin dialogs](prompts/web/session-1.md)
+
+## Miscellaneous
+
+- [Creating the README file](prompts/create-readme.md)
