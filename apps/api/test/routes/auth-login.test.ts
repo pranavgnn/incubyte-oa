@@ -5,6 +5,12 @@ import { buildApp, TEST_JWT_SECRET } from "../helpers/build-app.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
+// Identical for unknown email and wrong password, so a caller cannot
+// tell which emails are registered.
+const INVALID_CREDENTIALS = {
+  error: { code: "UNAUTHORIZED", message: "Invalid credentials", details: [] },
+};
+
 async function registerUser(email: string, password: string) {
   const response = await request(buildApp()).post("/api/auth/register").send({ email, password });
   expect(response.status).toBe(201);
@@ -43,5 +49,14 @@ describe("POST /api/auth/login", () => {
     );
     expect(payload.sub).toBe(user.id);
     expect(payload.role).toBe("user");
+  });
+
+  it("returns 401 UNAUTHORIZED with a generic message when the password is wrong", async () => {
+    await registerUser("alice@example.com", "correct-horse");
+
+    const response = await login({ email: "alice@example.com", password: "wrong-horse" });
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual(INVALID_CREDENTIALS);
   });
 });
