@@ -136,4 +136,16 @@ describe("POST /api/auth/register", () => {
     expect(response.body.user.email).toBe("alice@example.com");
     expect(await storedEmail(response.body.user.id)).toBe("alice@example.com");
   });
+
+  it("returns 409 CONFLICT when the email is already registered, ignoring case and whitespace", async () => {
+    await register({ email: "alice@example.com", password: "correct-horse" });
+
+    const response = await register({ email: " ALICE@example.com", password: "another-pass" });
+
+    expect(response.status).toBe(409);
+    expect(response.body).toEqual({
+      error: { code: "CONFLICT", message: "Email is already registered", details: [] },
+    });
+    expect(await userCount()).toBe(1);
+  });
 });
