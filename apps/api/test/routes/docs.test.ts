@@ -26,3 +26,12 @@ describe("GET /api/openapi.json", () => {
     expect(Object.keys(response.body.paths).sort()).toEqual([...ROUTE_PATHS].sort());
   });
 });
+
+describe("GET /api/docs", () => {
+  it("returns the API reference as an HTML page", async () => {
+    await request(buildApp())
+      .get("/api/docs")
+      .expect(200)
+      .expect("content-type", /text\/html/);
+  });
+});
