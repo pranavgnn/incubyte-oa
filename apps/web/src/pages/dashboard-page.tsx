@@ -73,7 +73,13 @@ export function DashboardPage() {
           onAction={isAdmin ? (action, vehicle) => setDialog({ action, vehicle }) : undefined}
         />
       </div>
-      {isAdmin && dialog && <AdminDialogs dialog={dialog} onClose={() => setDialog(null)} />}
+      {isAdmin && dialog && (
+        <AdminDialogs
+          dialog={dialog}
+          onClose={() => setDialog(null)}
+          onChanged={inventory.refetch}
+        />
+      )}
     </>
   );
 }

@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { type ReactNode, useId } from "react";
+import { type ReactNode, useId, useState } from "react";
 import {
   type Control,
   Controller,
@@ -8,6 +8,8 @@ import {
   useForm,
 } from "react-hook-form";
 import { categories, categoryLabels, type VehicleInput } from "@/api/vehicle-contracts";
+import { applyFormErrors } from "@/auth/apply-form-errors";
+import { FormAlert } from "@/components/form-alert";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -36,6 +38,7 @@ import { Spinner } from "@/components/ui/spinner";
 import {
   type VehicleFormOutput,
   type VehicleFormValues,
+  vehicleFormFields,
   vehicleFormSchema,
 } from "./vehicle-form-schema";
 
@@ -46,6 +49,9 @@ type VehicleFormDialogProps = {
   pendingLabel: string;
   defaultValues: VehicleFormValues;
   onSubmit: (input: VehicleInput) => Promise<void>;
+  // Returns true when the error was dealt with outside the form (toast,
+  // closing the dialog); anything else is shown in the form.
+  onError: (error: unknown) => boolean;
   onClose: () => void;
 };
 
@@ -58,9 +64,11 @@ export function VehicleFormDialog({
   pendingLabel,
   defaultValues,
   onSubmit,
+  onError,
   onClose,
 }: VehicleFormDialogProps) {
   const id = useId();
+  const [formError, setFormError] = useState<string | null>(null);
   const form = useForm<VehicleFormValues, unknown, VehicleFormOutput>({
     resolver: zodResolver(vehicleFormSchema),
     defaultValues,
@@ -68,7 +76,13 @@ export function VehicleFormDialog({
   const pending = form.formState.isSubmitting;
 
   const submit = form.handleSubmit(async (values) => {
-    await onSubmit(values);
+    setFormError(null);
+    try {
+      await onSubmit(values);
+    } catch (error) {
+      if (onError(error)) return;
+      setFormError(applyFormErrors(error, vehicleFormFields, form.setError));
+    }
   });
 
   return (
@@ -140,6 +154,7 @@ export function VehicleFormDialog({
               {(props) => <Input {...props} type="url" placeholder="https://" autoComplete="off" />}
             </FormControl>
           </fieldset>
+          <FormAlert message={formError} />
           <DialogFooter>
             <Button type="button" variant="ghost" disabled={pending} onClick={onClose}>
               Cancel
