@@ -1,10 +1,12 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HttpResponse, http } from "msw";
+import { Toaster } from "sonner";
 import { describe, expect, it } from "vitest";
 import { createAuthApi } from "@/api/auth-api";
 import { createApiClient } from "@/api/client";
 import { AuthProvider, useAuth } from "@/auth/auth-provider";
+import { createSessionExpiry } from "@/auth/session-expiry";
 import { createTokenStorage } from "@/auth/token-storage";
 import { server } from "../msw/server";
 
@@ -36,13 +38,19 @@ function AuthStatus() {
 
 function renderWithAuth() {
   const tokens = createTokenStorage(localStorage);
-  const authApi = createAuthApi(createApiClient({ baseUrl, getToken: tokens.get }));
-  render(
-    <AuthProvider authApi={authApi} tokens={tokens}>
-      <AuthStatus />
-    </AuthProvider>,
+  const sessionExpiry = createSessionExpiry();
+  const authApi = createAuthApi(
+    createApiClient({ baseUrl, getToken: tokens.get, onUnauthorized: sessionExpiry.notify }),
   );
-  return { tokens };
+  render(
+    <>
+      <AuthProvider authApi={authApi} tokens={tokens} sessionExpiry={sessionExpiry}>
+        <AuthStatus />
+      </AuthProvider>
+      <Toaster />
+    </>,
+  );
+  return { tokens, authApi };
 }
 
 describe("AuthProvider", () => {
@@ -100,5 +108,21 @@ describe("AuthProvider", () => {
 
     expect(await screen.findByText("signed-out")).toBeInTheDocument();
     expect(tokens.get()).toBeNull();
+  });
+
+  it("ends the session with a toast when an authenticated request answers 401", async () => {
+    server.use(
+      http.get(`${baseUrl}/api/auth/me`, () =>
+        HttpResponse.json(errorBody("UNAUTHORIZED", "Invalid or expired token"), { status: 401 }),
+      ),
+    );
+    const { tokens, authApi } = renderWithAuth();
+    await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
+
+    await act(() => authApi.me().catch(() => {}));
+
+    expect(screen.getByText("signed-out")).toBeInTheDocument();
+    expect(tokens.get()).toBeNull();
+    expect(await screen.findByText("Session expired — please sign in")).toBeInTheDocument();
   });
 });

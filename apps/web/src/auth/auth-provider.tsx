@@ -2,6 +2,7 @@ import type { AuthResponse, User } from "@dealership/shared";
 import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
 import type { AuthApi } from "@/api/auth-api";
 import { ApiError } from "@/api/errors";
+import type { SessionExpiry } from "./session-expiry";
 import type { TokenStorage } from "./token-storage";
 
 export type AuthState =
@@ -20,6 +21,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 type AuthProviderProps = {
   authApi: Pick<AuthApi, "me">;
   tokens: TokenStorage;
+  sessionExpiry: Pick<SessionExpiry, "subscribe">;
   children: ReactNode;
 };
 
