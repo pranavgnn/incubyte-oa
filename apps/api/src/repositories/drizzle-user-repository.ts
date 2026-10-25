@@ -1,4 +1,5 @@
 import type { User } from "@dealership/shared";
+import { eq } from "drizzle-orm";
 import type { Database } from "../db/client.js";
 import { users } from "../db/schema.js";
 import { ConflictError } from "../errors/app-error.js";
@@ -25,6 +26,14 @@ export class DrizzleUserRepository implements UserRepository {
       }
       throw error;
     }
+  }
+
+  async findByEmail(email: string): Promise<User | undefined> {
+    const [user] = await this.db
+      .select({ id: users.id, email: users.email, role: users.role })
+      .from(users)
+      .where(eq(users.email, email));
+    return user;
   }
 }
 

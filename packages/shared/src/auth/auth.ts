@@ -22,6 +22,13 @@ export const registerRequestSchema = z.strictObject({
 
 export type RegisterRequest = z.infer<typeof registerRequestSchema>;
 
+export const loginRequestSchema = z.object({
+  email: z.string(),
+  password: z.string(),
+});
+
+export type LoginRequest = z.infer<typeof loginRequestSchema>;
+
 // The public view of a user. The password hash never appears here.
 export const userSchema = z.strictObject({
   id: z.uuid(),
