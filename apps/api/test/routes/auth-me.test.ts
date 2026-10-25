@@ -79,4 +79,19 @@ describe("GET /api/auth/me", () => {
     expect(response.status).toBe(401);
     expect(response.body).toEqual(INVALID_TOKEN);
   });
+
+  it.each([
+    { label: "a sub that is not a uuid", claims: () => ({ sub: "alice", role: "user" }) },
+    { label: "no sub", claims: () => ({ role: "user" }) },
+    { label: "no role", claims: (sub: string) => ({ sub }) },
+    { label: "an unknown role", claims: (sub: string) => ({ sub, role: "superuser" }) },
+  ])("returns 401 for a correctly signed token with $label", async ({ claims }) => {
+    const { user } = await registerUser("alice@example.com", "correct-horse");
+    const token = await signToken(claims(user.id));
+
+    const response = await me(`Bearer ${token}`);
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual(INVALID_TOKEN);
+  });
 });
