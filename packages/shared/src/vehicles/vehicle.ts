@@ -56,15 +56,21 @@ export type CreateVehicleRequest = z.infer<typeof createVehicleRequestSchema>;
 // range as the price column.
 const priceFilterSchema = z.coerce.number().pipe(z.int32().nonnegative());
 
-export const vehicleSearchQuerySchema = z.strictObject({
-  // Partial, case-insensitive match on make or model.
-  q: z.string().trim().optional(),
-  make: z.string().trim().optional(),
-  model: z.string().trim().optional(),
-  category: vehicleCategorySchema.optional(),
-  // Inclusive bounds.
-  minPrice: priceFilterSchema.optional(),
-  maxPrice: priceFilterSchema.optional(),
-});
+export const vehicleSearchQuerySchema = z
+  .strictObject({
+    // Partial, case-insensitive match on make or model.
+    q: z.string().trim().optional(),
+    make: z.string().trim().optional(),
+    model: z.string().trim().optional(),
+    category: vehicleCategorySchema.optional(),
+    // Inclusive bounds.
+    minPrice: priceFilterSchema.optional(),
+    maxPrice: priceFilterSchema.optional(),
+  })
+  .refine(
+    ({ minPrice, maxPrice }) =>
+      minPrice === undefined || maxPrice === undefined || minPrice <= maxPrice,
+    { message: "minPrice must not be greater than maxPrice", path: ["minPrice"] },
+  );
 
 export type VehicleSearchQuery = z.infer<typeof vehicleSearchQuerySchema>;
