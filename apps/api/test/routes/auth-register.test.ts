@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { jwtVerify } from "jose";
-import request from "supertest";
+import request, { type Response } from "supertest";
 import { describe, expect, it } from "vitest";
 import { testDatabase } from "../db.js";
 import { buildApp, TEST_JWT_SECRET } from "../helpers/build-app.js";
@@ -18,6 +18,17 @@ async function storedPasswordHash(userId: string): Promise<string> {
 async function userCount(): Promise<number> {
   const { rows } = await testDatabase.pool.query<{ count: string }>("SELECT count(*) FROM users");
   return Number(rows[0]?.count);
+}
+
+function expectValidationError(response: Response, field: string) {
+  expect(response.status).toBe(400);
+  expect(response.body).toEqual({
+    error: {
+      code: "VALIDATION_ERROR",
+      message: "Request validation failed",
+      details: [{ path: [field], message: expect.any(String) }],
+    },
+  });
 }
 
 function register(body: unknown) {
@@ -64,25 +75,14 @@ describe("POST /api/auth/register", () => {
   it("returns 400 VALIDATION_ERROR with the issue in details when the email is invalid", async () => {
     const response = await register({ email: "not-an-email", password: "correct-horse" });
 
-    expect(response.status).toBe(400);
-    expect(response.body).toEqual({
-      error: {
-        code: "VALIDATION_ERROR",
-        message: "Request validation failed",
-        details: [{ path: ["email"], message: expect.any(String) }],
-      },
-    });
+    expectValidationError(response, "email");
     expect(await userCount()).toBe(0);
   });
 
   it("returns 400 VALIDATION_ERROR when the password is shorter than 8 characters", async () => {
     const response = await register({ email: "alice@example.com", password: "1234567" });
 
-    expect(response.status).toBe(400);
-    expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    expect(response.body.error.details).toEqual([
-      { path: ["password"], message: expect.any(String) },
-    ]);
+    expectValidationError(response, "password");
     expect(await userCount()).toBe(0);
   });
 
@@ -90,11 +90,7 @@ describe("POST /api/auth/register", () => {
     // 25 characters but 75 bytes: bcrypt would silently ignore everything past byte 72.
     const response = await register({ email: "alice@example.com", password: "€".repeat(25) });
 
-    expect(response.status).toBe(400);
-    expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    expect(response.body.error.details).toEqual([
-      { path: ["password"], message: expect.any(String) },
-    ]);
+    expectValidationError(response, "password");
     expect(await userCount()).toBe(0);
   });
 
