@@ -76,4 +76,19 @@ describe("api client", () => {
       message: "Network error — check your connection",
     });
   });
+
+  it("sends the stored token as a Bearer Authorization header", async () => {
+    let authorization: string | null = null;
+    server.use(
+      http.get(pingUrl, ({ request }) => {
+        authorization = request.headers.get("Authorization");
+        return HttpResponse.json({ status: "ok" });
+      }),
+    );
+    const client = createApiClient({ baseUrl, getToken: () => "abc.def.ghi" });
+
+    await client.request("/api/ping", { schema: pingSchema });
+
+    expect(authorization).toBe("Bearer abc.def.ghi");
+  });
 });

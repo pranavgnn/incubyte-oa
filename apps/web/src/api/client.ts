@@ -4,6 +4,7 @@ import { ApiError } from "./errors";
 
 export type ApiClientOptions = {
   baseUrl: string;
+  getToken?: () => string | null;
 };
 
 type RequestOptions<T> = {
