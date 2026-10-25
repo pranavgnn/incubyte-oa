@@ -49,4 +49,14 @@ describe("parseEnv", () => {
       /^Invalid environment variables:\n[\s\S]*DATABASE_URL[\s\S]*JWT_SECRET/,
     );
   });
+
+  it("trims and lowercases ADMIN_EMAIL, the same way user emails are stored", () => {
+    expect(parseEnv({ ...validSource, ADMIN_EMAIL: "  Admin@Example.COM " }).ADMIN_EMAIL).toBe(
+      "admin@example.com",
+    );
+  });
+
+  it("rejects an ADMIN_EMAIL that is not an email", () => {
+    expect(() => parseEnv({ ...validSource, ADMIN_EMAIL: "not-an-email" })).toThrow(/ADMIN_EMAIL/);
+  });
 });

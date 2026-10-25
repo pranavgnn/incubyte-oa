@@ -1,3 +1,4 @@
+import { emailSchema } from "@dealership/shared";
 import { z } from "zod";
 
 export const envSchema = z.object({
@@ -8,6 +9,9 @@ export const envSchema = z.object({
   JWT_SECRET: z.string().min(32),
   JWT_EXPIRES_IN: z.string().default("15m"),
   WEB_ORIGIN: z.url(),
+  // Only db:seed needs it, so the server and the Vercel function start
+  // without it; the seed fails fast when it is missing.
+  ADMIN_EMAIL: emailSchema.optional(),
 });
 
 export type Env = Readonly<z.infer<typeof envSchema>>;

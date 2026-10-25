@@ -10,6 +10,7 @@ Raw, unedited AI chat logs. One file per session.
 - [Session 0: scaffold and health endpoint](prompts/api/session-0.md)
 - [Session 1: Vercel deploy](prompts/api/session-1.md)
 - [Session 2: register](prompts/api/session-2.md)
+- [Session 3: login](prompts/api/session-3.md)
 
 ## Web (Claude Code)
 - (added as sessions finish)
