@@ -114,6 +114,21 @@ describe("POST /api/auth/login", () => {
   });
 
   it.each([
+    { label: "shorter than the register minimum", password: "abc" },
+    { label: "over the 72-byte register cap", password: "â‚¬".repeat(30) },
+  ])(
+    "answers a wrong password $label with 401, not 400, so the password policy is not revealed",
+    async ({ password }) => {
+      await registerUser("alice@example.com", "correct-horse");
+
+      const response = await login({ email: "alice@example.com", password });
+
+      expect(response.status).toBe(401);
+      expect(response.body).toEqual(INVALID_CREDENTIALS);
+    },
+  );
+
+  it.each([
     { key: "role", value: "admin" },
     { key: "remember", value: true },
   ])("returns 400 VALIDATION_ERROR for the unknown key $key", async ({ key, value }) => {
