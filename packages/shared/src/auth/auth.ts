@@ -23,7 +23,8 @@ export const registerRequestSchema = z.strictObject({
 export type RegisterRequest = z.infer<typeof registerRequestSchema>;
 
 export const loginRequestSchema = z.object({
-  email: z.string(),
+  // Same normalisation as register, so the lookup matches the stored email.
+  email: z.string().trim().toLowerCase(),
   password: z.string(),
 });
 
