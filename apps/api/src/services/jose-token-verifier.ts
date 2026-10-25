@@ -12,7 +12,8 @@ export class JoseTokenVerifier implements TokenVerifier {
 
   async verify(token: string): Promise<AuthContext> {
     try {
-      const { payload } = await jwtVerify(token, this.key);
+      // Pinned to the one algorithm JoseTokenIssuer signs with.
+      const { payload } = await jwtVerify(token, this.key, { algorithms: ["HS256"] });
       return { userId: payload.sub as string, role: payload.role as Role };
     } catch (error) {
       // Malformed, badly signed and expired tokens all throw JOSEError
