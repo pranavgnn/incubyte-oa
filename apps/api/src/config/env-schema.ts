@@ -8,6 +8,7 @@ export const envSchema = z.object({
   JWT_SECRET: z.string().min(32),
   JWT_EXPIRES_IN: z.string().default("15m"),
   WEB_ORIGIN: z.url(),
+  ADMIN_EMAIL: z.string().optional(),
 });
 
 export type Env = Readonly<z.infer<typeof envSchema>>;
