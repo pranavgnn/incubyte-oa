@@ -38,4 +38,13 @@ describe("ThemeProvider", () => {
     expect(document.documentElement).toHaveClass("dark");
     expect(localStorage.getItem("dealership.theme")).toBe("dark");
   });
+
+  it("uses the remembered choice over the system setting", () => {
+    localStorage.setItem("dealership.theme", "light");
+
+    renderTheme(true);
+
+    expect(document.documentElement).not.toHaveClass("dark");
+    expect(screen.getByRole("button", { name: "light" })).toBeInTheDocument();
+  });
 });
