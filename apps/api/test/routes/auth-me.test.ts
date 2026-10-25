@@ -33,4 +33,14 @@ describe("GET /api/auth/me", () => {
     expect(response.status).toBe(401);
     expect(response.body).toEqual(AUTHENTICATION_REQUIRED);
   });
+
+  it.each(["Basic YWxpY2U6c2VjcmV0", "Token abc.def.ghi", "Bearer"])(
+    "returns 401 Authentication required when the header is not a bearer token: %s",
+    async (authorization) => {
+      const response = await me(authorization);
+
+      expect(response.status).toBe(401);
+      expect(response.body).toEqual(AUTHENTICATION_REQUIRED);
+    },
+  );
 });
