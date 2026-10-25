@@ -1,8 +1,9 @@
 import type { User } from "@dealership/shared";
+import { eq, sql } from "drizzle-orm";
 import type { Database } from "../db/client.js";
 import { users } from "../db/schema.js";
 import { ConflictError } from "../errors/app-error.js";
-import type { NewUser, UserRepository } from "../services/auth-service.js";
+import type { NewUser, UserRepository, UserWithPasswordHash } from "../services/auth-service.js";
 
 // Postgres error code for unique_violation.
 const UNIQUE_VIOLATION = "23505";
@@ -25,6 +26,29 @@ export class DrizzleUserRepository implements UserRepository {
       }
       throw error;
     }
+  }
+
+  async findByEmail(email: string): Promise<UserWithPasswordHash | undefined> {
+    const [user] = await this.db
+      .select({
+        id: users.id,
+        email: users.email,
+        role: users.role,
+        passwordHash: users.passwordHash,
+      })
+      .from(users)
+      // Same expression as the unique index, so the lookup can use it and
+      // matches rows stored with capitals. `email` arrives lowercased.
+      .where(eq(sql`lower(${users.email})`, email));
+    return user;
+  }
+
+  async findById(id: string): Promise<User | undefined> {
+    const [user] = await this.db
+      .select({ id: users.id, email: users.email, role: users.role })
+      .from(users)
+      .where(eq(users.id, id));
+    return user;
   }
 }
 

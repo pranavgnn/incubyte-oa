@@ -10,6 +10,7 @@ import { AuthService } from "./services/auth-service.js";
 import { BcryptPasswordHasher } from "./services/bcrypt-password-hasher.js";
 import { HealthService } from "./services/health-service.js";
 import { JoseTokenIssuer } from "./services/jose-token-issuer.js";
+import { JoseTokenVerifier } from "./services/jose-token-verifier.js";
 
 export type ContainerOptions = {
   pool?: Omit<PoolConfig, "connectionString">;
@@ -29,6 +30,7 @@ export function createContainer(env: Env, options: ContainerOptions = {}) {
       ),
     ),
     healthController: new HealthController(new HealthService(new DrizzleHealthRepository(db))),
+    tokenVerifier: new JoseTokenVerifier(env.JWT_SECRET),
   };
 
   return { deps, pool, close: () => pool.end() };
