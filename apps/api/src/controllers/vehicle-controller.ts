@@ -1,5 +1,6 @@
 import type {
   CreateVehicleRequest,
+  RestockRequest,
   UpdateVehicleRequest,
   Vehicle,
   VehicleSearchQuery,
@@ -35,6 +36,13 @@ export class VehicleController {
 
   purchase = async (req: Request<{ id: string }>, res: Response<Vehicle>): Promise<void> => {
     res.status(200).json(await this.service.purchase(req.params.id));
+  };
+
+  restock = async (
+    req: Request<{ id: string }, Vehicle, RestockRequest>,
+    res: Response<Vehicle>,
+  ): Promise<void> => {
+    res.status(200).json(await this.service.restock(req.params.id, req.body.quantity));
   };
 
   delete = async (req: Request<{ id: string }>, res: Response): Promise<void> => {

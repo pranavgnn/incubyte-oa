@@ -77,6 +77,17 @@ export class DrizzleVehicleRepository implements VehicleRepository {
       .returning();
     return row && toVehicle(row);
   }
+
+  // Same single-statement shape as decrementQuantity, so a restock never
+  // overwrites a purchase that lands at the same time.
+  async incrementQuantity(id: string, amount: number): Promise<Vehicle | undefined> {
+    const [row] = await this.db
+      .update(vehicles)
+      .set({ quantity: sql`${vehicles.quantity} + ${amount}`, updatedAt: sql`now()` })
+      .where(eq(vehicles.id, id))
+      .returning();
+    return row && toVehicle(row);
+  }
 }
 
 // Case-insensitive substring match. User input is escaped so %, _ and \

@@ -1,6 +1,7 @@
 import {
   createVehicleRequestSchema,
   purchaseRequestSchema,
+  restockRequestSchema,
   updateVehicleRequestSchema,
   vehicleIdParamsSchema,
   vehicleSearchQuerySchema,
@@ -42,5 +43,6 @@ export function vehicleRoutes(controller: VehicleController, authenticate: Reque
     validate({ params: vehicleIdParamsSchema, body: purchaseRequestSchema }),
     controller.purchase,
   );
+  router.post("/:id/restock", validate({ body: restockRequestSchema }), controller.restock);
   return router;
 }

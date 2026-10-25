@@ -18,6 +18,8 @@ export interface VehicleRepository {
   // Atomically subtracts `amount` only if that much is in stock; undefined
   // when the vehicle is missing or has too few units.
   decrementQuantity(id: string, amount: number): Promise<Vehicle | undefined>;
+  // Atomically adds `amount`; undefined when the vehicle is missing.
+  incrementQuantity(id: string, amount: number): Promise<Vehicle | undefined>;
 }
 
 export class VehicleService {
@@ -51,5 +53,9 @@ export class VehicleService {
     // The update matched nothing: either the id is unknown or stock ran out.
     if (await this.vehicles.exists(id)) throw new OutOfStockError("Vehicle is out of stock");
     throw new NotFoundError("Vehicle not found");
+  }
+
+  async restock(id: string, amount: number): Promise<Vehicle> {
+    return (await this.vehicles.incrementQuantity(id, amount)) as Vehicle;
   }
 }
