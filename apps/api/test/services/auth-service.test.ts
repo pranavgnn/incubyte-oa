@@ -20,6 +20,11 @@ class FakeUserRepository implements UserRepository {
   async findByEmail(email: string): Promise<UserWithPasswordHash | undefined> {
     return this.rows.find((row) => row.email === email);
   }
+
+  async findById(id: string): Promise<User | undefined> {
+    const row = this.rows.find((candidate) => candidate.id === id);
+    return row && { id: row.id, email: row.email, role: row.role };
+  }
 }
 
 // Records every comparison so a test can see whether one happened.

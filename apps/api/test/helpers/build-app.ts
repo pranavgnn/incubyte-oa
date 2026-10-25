@@ -7,6 +7,7 @@ import { AuthService } from "../../src/services/auth-service.js";
 import { BcryptPasswordHasher } from "../../src/services/bcrypt-password-hasher.js";
 import { type HealthRepository, HealthService } from "../../src/services/health-service.js";
 import { JoseTokenIssuer } from "../../src/services/jose-token-issuer.js";
+import { JoseTokenVerifier } from "../../src/services/jose-token-verifier.js";
 import { testDatabase } from "../db.js";
 
 export const TEST_WEB_ORIGIN = "http://localhost:5173";
@@ -34,5 +35,6 @@ export function buildApp(overrides: Overrides = {}) {
       ),
     ),
     healthController: new HealthController(healthService),
+    tokenVerifier: new JoseTokenVerifier(TEST_JWT_SECRET),
   });
 }

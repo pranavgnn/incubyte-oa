@@ -1,4 +1,4 @@
-import type { AuthResponse, LoginRequest, RegisterRequest, User } from "@dealership/shared";
+import type { AuthResponse, LoginRequest, RegisterRequest, Role, User } from "@dealership/shared";
 import { UnauthorizedError } from "../errors/app-error.js";
 
 export type NewUser = {
@@ -12,6 +12,7 @@ export type UserWithPasswordHash = User & { passwordHash: string };
 export interface UserRepository {
   create(user: NewUser): Promise<User>;
   findByEmail(email: string): Promise<UserWithPasswordHash | undefined>;
+  findById(id: string): Promise<User | undefined>;
 }
 
 export interface PasswordHasher {
@@ -23,6 +24,16 @@ export interface PasswordHasher {
 
 export interface TokenIssuer {
   issue(user: User): Promise<string>;
+}
+
+// Who the caller is, as proven by a verified token.
+export type AuthContext = {
+  userId: string;
+  role: Role;
+};
+
+export interface TokenVerifier {
+  verify(token: string): Promise<AuthContext>;
 }
 
 export class AuthService {
@@ -46,5 +57,11 @@ export class AuthService {
     if (!found || !valid) throw new UnauthorizedError("Invalid credentials");
     const { passwordHash: _hash, ...user } = found;
     return { token: await this.tokens.issue(user), user };
+  }
+
+  async currentUser(userId: string): Promise<User> {
+    const user = await this.users.findById(userId);
+    if (!user) throw new Error("not implemented");
+    return user;
   }
 }

@@ -42,6 +42,14 @@ export class DrizzleUserRepository implements UserRepository {
       .where(eq(sql`lower(${users.email})`, email));
     return user;
   }
+
+  async findById(id: string): Promise<User | undefined> {
+    const [user] = await this.db
+      .select({ id: users.id, email: users.email, role: users.role })
+      .from(users)
+      .where(eq(users.id, id));
+    return user;
+  }
 }
 
 // Drizzle wraps driver errors, keeping the pg error as the cause.
