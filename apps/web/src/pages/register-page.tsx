@@ -1,14 +1,18 @@
 import { registerRequestSchema } from "@dealership/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useApi } from "@/api/api-provider";
+import { ApiError } from "@/api/errors";
+import { toFormErrors } from "@/api/form-errors";
 import { authFormErrorMap } from "@/auth/auth-form-errors";
 import { useAuth } from "@/auth/auth-provider";
 import { safeNextPath } from "@/auth/safe-next";
 import { PasswordInput } from "@/components/password-input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -32,13 +36,33 @@ export function RegisterPage() {
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [formError, setFormError] = useState<string | null>(null);
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerFormSchema, { error: authFormErrorMap }),
     defaultValues: { email: "", password: "", confirmPassword: "" },
   });
 
   const onSubmit = form.handleSubmit(async (values) => {
-    const session = await authApi.register(values);
+    setFormError(null);
+    let session: Awaited<ReturnType<typeof authApi.register>>;
+    try {
+      session = await authApi.register(values);
+    } catch (error) {
+      if (error instanceof ApiError && error.code === "CONFLICT") {
+        form.setError(
+          "email",
+          { message: "An account with this email already exists" },
+          { shouldFocus: true },
+        );
+        return;
+      }
+      const { fieldErrors, formError } = toFormErrors(error, ["email", "password"] as const);
+      for (const { field, message } of fieldErrors) {
+        form.setError(field, { message }, { shouldFocus: true });
+      }
+      setFormError(formError);
+      return;
+    }
     signIn(session);
     navigate(safeNextPath(searchParams.get("next")), { replace: true });
     toast.success(`Account created — signed in as ${session.user.email}`);
@@ -116,6 +140,11 @@ export function RegisterPage() {
                 </Field>
               )}
             />
+            {formError && (
+              <Alert variant="destructive">
+                <AlertDescription>{formError}</AlertDescription>
+              </Alert>
+            )}
             <Button type="submit" className="w-full">
               Create account
             </Button>
