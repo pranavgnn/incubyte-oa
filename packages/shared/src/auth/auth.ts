@@ -4,14 +4,17 @@ export const roleSchema = z.enum(["user", "admin"]);
 
 export type Role = z.infer<typeof roleSchema>;
 
+// Normalised before the format check so stray whitespace or capitals
+// never create a second account for the same mailbox, and every lookup
+// compares against the form that was stored.
+export const emailSchema = z.string().trim().toLowerCase().pipe(z.email());
+
 // bcrypt ignores everything after the first 72 bytes, so the limit is
 // measured in UTF-8 bytes, not characters.
 const MAX_PASSWORD_BYTES = 72;
 
 export const registerRequestSchema = z.strictObject({
-  // Normalised before the format check so stray whitespace or capitals
-  // never create a second account for the same mailbox.
-  email: z.string().trim().toLowerCase().pipe(z.email()),
+  email: emailSchema,
   password: z
     .string()
     .min(8)
@@ -23,8 +26,7 @@ export const registerRequestSchema = z.strictObject({
 export type RegisterRequest = z.infer<typeof registerRequestSchema>;
 
 export const loginRequestSchema = z.strictObject({
-  // Same normalisation as register, so the lookup matches the stored email.
-  email: z.string().trim().toLowerCase().pipe(z.email()),
+  email: emailSchema,
   // Non-empty only. The register policy (length, byte cap) is not repeated
   // here, so a login attempt never learns what that policy is.
   password: z.string().min(1),
