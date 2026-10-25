@@ -314,19 +314,49 @@ To reproduce: `docker compose up -d`, then `pnpm test:coverage`. `pnpm --filter 
 
 ## My AI Usage
 
-<!-- To be written by the author. -->
+### Tools
 
-### Tools used
+1. Claude Code CLI:
+- I used this to code the entire project. My chats are all in PROMPTS.md. Used Opus 5.5 on medium specifically.
 
-<!-- Which AI tools were used. -->
+2. Claude.ai Web Chat
+- I used this to create my CLAUDE.md and DESIGN.md. These chat links are in PROMPTS.md as well. Used Opus 5.5 on medium specifically.
+
+3. Context7 MCP: Forced library docs instead of relying on model's knowledge.
+
+4. @shadcn/lint: Used as a guardrail so that the AI is forced not to deviate from DESIGN.md.
+
+5. Pinterest: Visual references (inspiration / reference images) given to Claude web when creating the DESIGN.md file.
+
+6. Caveman: Skill used to save output tokens.
 
 ### How I used them
 
-<!-- How they were used across planning, backend, frontend and testing. -->
+1. CLAUDE.md is the contract, of course. It has the architecture of the project, the TDD rules, commit rules, skills and mcp usage (caveman skill and Context7 mcp), and codebase rules, like not to touch PROMPTS.md and "AI Usage" section in README.md (this section).
+
+2. Plan mode was used before every session. I read the plans given to me, and if there were things to correct, I corrected. This repeated until I was happy with the plans and gave it the green flag to implement.
+
+3. Optimized git for agentic usage. Made it branch first, then once its done, publish a PR using the gh cli, and I would manually review it. If I was content with it, I would merge to main. I have also set up my GitHub repository to not allow commits to main.
+
+4. Parallel development, as the deadline was approaching, I realized I didn't have enough time, so made a new git worktree for developing frontend in parallel. I had to make it generate a local copy of the API contract for test cases initially, but it all worked out at the end. 
+
+### Where the AI went wrong
+
+1. Claude committed a feat when test was still red, because it checked the output, not exit code. It has been fixed in the next commit.
+2. A smoke test revealed that stopping Postgres crashed the API. It would have definitely occurred in production if not caught early. It was fixed test-first.
+3. The DESIGN.md had some inconsistencies and was not aligned fully with the backend's schema. Caught it early and fixed it by giving the full API contract.
+4. Vercel's zero config deploy would have broken in runtime. This was caught in planning.
 
 ### Reflection
 
-<!-- How AI affected the workflow. -->
+Honestly, I have worked with AI a lot on projects, but this was the most intense session. This is because I had never taken a red green refactor approach. For my earlier projects, I always wrote code first, then test cases. In that case, AI would develop a lot faster, so this was frustrating to me as developing just one API route took upwards of an hour. However, towards the end, I realized the importance of red green refactor approach. It caught so many bugs early on, my final manual testing went smooth. I'm starting to believe that red green refactor is the best for AI driven development.
+
+During this development process, I realized that my role from typing code has completely shifted to making decisions and reviewing code critically. The value was in the tech stack I picked, the harness I developed for my AI agent, rather than writing lines of code by hand. 
+
+Also, TDD with AI was slow initially. Even for test runs, bcrypt was computing at cost 12. I made it group related cases into one it.each cycle to only run the affected test file during cycles.
+
+If I were to do this again, I would definitely do the parallel worktree separation right from the start, as it saves a lot of time. Another thing is I would have spent more time on planning the project alone, as in retrospect there's a lot of time I could have saved had I prompted better.
+
 
 The raw prompt logs are in [PROMPTS.md](PROMPTS.md).
 
