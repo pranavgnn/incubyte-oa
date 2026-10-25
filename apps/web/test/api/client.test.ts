@@ -44,4 +44,22 @@ describe("api client", () => {
       details,
     });
   });
+
+  it.each([
+    ["a non-JSON error page", () => new HttpResponse("<h1>Bad gateway</h1>", { status: 502 })],
+    ["an error body in the wrong shape", () => HttpResponse.json({ oops: 1 }, { status: 500 })],
+    ["a success body the schema rejects", () => HttpResponse.json({ status: "nope" })],
+  ])("throws a generic INTERNAL_ERROR ApiError for %s", async (_label, resolver) => {
+    server.use(http.get(pingUrl, resolver));
+    const client = createApiClient({ baseUrl });
+
+    const error = await client.request("/api/ping", { schema: pingSchema }).catch((e) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({
+      code: "INTERNAL_ERROR",
+      message: "Unexpected response from the server",
+      details: [],
+    });
+  });
 });
