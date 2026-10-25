@@ -1,6 +1,7 @@
 import {
   createVehicleRequestSchema,
   updateVehicleRequestSchema,
+  vehicleIdParamsSchema,
   vehicleSearchQuerySchema,
 } from "@dealership/shared";
 import { type RequestHandler, Router } from "express";
@@ -25,7 +26,7 @@ export function vehicleRoutes(controller: VehicleController, authenticate: Reque
   router.put(
     "/:id",
     requireRole("admin"),
-    validate({ body: updateVehicleRequestSchema }),
+    validate({ params: vehicleIdParamsSchema, body: updateVehicleRequestSchema }),
     controller.update,
   );
   return router;

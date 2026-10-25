@@ -41,6 +41,12 @@ const priceSchema = z.int32().positive();
 
 const imageUrlSchema = z.url({ protocol: /^https$/ });
 
+export const vehicleIdParamsSchema = z.strictObject({
+  id: z.uuid(),
+});
+
+export type VehicleIdParams = z.infer<typeof vehicleIdParamsSchema>;
+
 export const createVehicleRequestSchema = z.strictObject({
   make: vehicleNameSchema,
   model: vehicleNameSchema,
@@ -84,6 +90,9 @@ export const updateVehicleRequestSchema = z
     // null removes the image.
     imageUrl: imageUrlSchema.nullable(),
   })
-  .partial();
+  .partial()
+  .refine((changes) => Object.keys(changes).length > 0, {
+    message: "At least one field must be provided",
+  });
 
 export type UpdateVehicleRequest = z.infer<typeof updateVehicleRequestSchema>;

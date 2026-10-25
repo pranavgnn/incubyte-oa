@@ -4,12 +4,14 @@ import type {
   Vehicle,
   VehicleSearchQuery,
 } from "@dealership/shared";
+import { NotFoundError } from "../errors/app-error.js";
 
 export interface VehicleRepository {
   // Newest first; every given filter must match, so {} returns everything.
   search(filters: VehicleSearchQuery): Promise<Vehicle[]>;
   create(vehicle: CreateVehicleRequest): Promise<Vehicle>;
-  update(id: string, changes: UpdateVehicleRequest): Promise<Vehicle>;
+  // undefined when no vehicle has the id.
+  update(id: string, changes: UpdateVehicleRequest): Promise<Vehicle | undefined>;
 }
 
 export class VehicleService {
@@ -27,7 +29,9 @@ export class VehicleService {
     return this.vehicles.create(input);
   }
 
-  update(id: string, changes: UpdateVehicleRequest): Promise<Vehicle> {
-    return this.vehicles.update(id, changes);
+  async update(id: string, changes: UpdateVehicleRequest): Promise<Vehicle> {
+    const vehicle = await this.vehicles.update(id, changes);
+    if (!vehicle) throw new NotFoundError("Vehicle not found");
+    return vehicle;
   }
 }
