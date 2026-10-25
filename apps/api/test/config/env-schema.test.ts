@@ -23,4 +23,8 @@ describe("parseEnv", () => {
       WEB_ORIGIN: "http://localhost:5173",
     });
   });
+
+  it("rejects a JWT_SECRET shorter than 32 characters", () => {
+    expect(() => parseEnv({ ...validSource, JWT_SECRET: "a".repeat(31) })).toThrow(/JWT_SECRET/);
+  });
 });
