@@ -41,19 +41,20 @@ pnpm typecheck
 
 A behaviour is one observable rule, for example "purchase returns 409 when stock is 0". It is never a whole endpoint.
 
-1. **Red.** Write one failing test for the behaviour. Run it and confirm it fails *for the expected reason*. Commit: `test(scope): <behaviour>`.
+1. **Red.** Write one failing test for the behaviour. Run it and confirm it fails _for the expected reason_. Commit: `test(scope): <behaviour>`.
    - Red commits must still typecheck. If needed, add the minimal stub (signature only, throws `new Error("not implemented")`) so the failure happens at runtime, not at compile time.
 2. **Green.** Write the minimum code to pass. Run the full relevant suite. Commit: `feat(scope): <behaviour>` (or `fix`).
 3. **Refactor.** Clean up with all tests green. Commit: `refactor(scope): <what>`. Do this whenever there is something real to improve. **Never make empty or fake refactor commits.**
 
 Other rules:
+
 - No production code without a failing test that demanded it.
 - Setup and config commits (`chore`, `build`, `ci`, `docs`) sit outside the cycle. Keep them separate and small.
 - Pre-commit hooks run lint, format, and typecheck only, **not tests**, so red commits stay possible.
 
 ## Commits
 
-Conventional Commits, small and frequent, and each message must explain *why*. Every commit where you helped (which is every commit you make) ends with a body, **two empty lines**, then exactly one trailer:
+Conventional Commits, small and frequent, and each message must explain _why_. Every commit where you helped (which is every commit you make) ends with a body, **two empty lines**, then exactly one trailer:
 
 ```bash
 git commit -F - <<'EOF'
@@ -69,6 +70,18 @@ EOF
 ```
 
 Use only that trailer. Do not add the default "Generated with Claude Code" line or a second co-author line.
+
+## Git workflow
+
+- **Setup (build order step 0) commits go straight to `main`.** Setup is done once tooling, docker compose, env schemas, CI, and `/api/health` are on `main` with CI green. Tell me when that point is reached.
+- **After setup, every feature gets its own branch.** Never commit to `main` directly again.
+  1. Start from fresh `main`: `git switch main && git pull --ff-only && git switch -c feat/<feature>`. Use short kebab-case names, e.g. `feat/auth-register`, `feat/vehicle-purchase`.
+  2. Every red, green, and refactor commit for that feature goes on the branch. Keep one feature per branch.
+  3. When the feature is done, run `pnpm lint && pnpm typecheck && pnpm test:coverage` and make sure all pass. Then push with `git push -u origin feat/<feature>`.
+  4. Open the PR with `gh pr create --base main`. The title is a Conventional Commit summary. The body covers what the feature does, the behaviours covered (one line per red→green cycle), any new "Design decisions" entries, and the test/coverage result. End the body with:
+     `AI assistance: built with Claude Code (Co-authored-by trailers on each commit).`
+  5. Run `gh pr checks --watch` and report the result. If CI fails, fix it with new commits on the branch, never by amending pushed commits.
+- **Merging:** do not merge a PR unless I ask. When I do, use `gh pr merge --merge --delete-branch`. **Never use `--squash` or `--rebase`.** Merge commits keep the red-green-refactor history visible on `main`.
 
 ## Backend architecture (`apps/api`)
 
@@ -89,7 +102,7 @@ server.ts      local entry: builds the real container, calls createApp(deps), li
 api/index.ts   Vercel entry: builds the real container, exports createApp(deps); no listen()
 ```
 
-- **Dependency injection:** use manual constructor injection, no DI framework. Services depend on repository *interfaces*. `container.ts` is the only place that instantiates concrete classes. Tests pass fakes or test-DB repos into `createApp(deps)`.
+- **Dependency injection:** use manual constructor injection, no DI framework. Services depend on repository _interfaces_. `container.ts` is the only place that instantiates concrete classes. Tests pass fakes or test-DB repos into `createApp(deps)`.
 - Express 5 forwards async errors. Do not wrap handlers in try/catch and do not add async-handler libraries.
 
 ## Validation & env (Zod everywhere)
@@ -106,7 +119,13 @@ api/index.ts   Vercel entry: builds the real container, exports createApp(deps);
 Every non-2xx response uses exactly this shape. It is produced only by `errorHandler`:
 
 ```json
-{ "error": { "code": "OUT_OF_STOCK", "message": "Human readable", "details": [] } }
+{
+  "error": {
+    "code": "OUT_OF_STOCK",
+    "message": "Human readable",
+    "details": []
+  }
+}
 ```
 
 Map errors to statuses as follows: `VALIDATION_ERROR` 400, `UNAUTHORIZED` 401, `FORBIDDEN` 403, `NOT_FOUND` 404, `CONFLICT` / `OUT_OF_STOCK` 409, `INTERNAL_ERROR` 500. Throw typed `AppError` subclasses. Unknown errors become a 500 with a generic message; stack traces and DB errors never leak. Unknown routes return 404 in the same shape.
@@ -136,7 +155,7 @@ Map errors to statuses as follows: `VALIDATION_ERROR` 400, `UNAUTHORIZED` 401, `
 - Service unit tests may use hand-written fake repositories that implement the interface. Every route still needs Supertest coverage of its happy path, auth (401), role (403), validation (400), and not-found (404) cases.
 - Web tests use RTL with `user-event` and query by role or label, never by test IDs unless unavoidable. Use MSW for every network call; never stub `fetch` directly. Cover forms, the search/filter flow, purchase disabled at 0, and admin-only UI.
 - **Coverage thresholds, enforced in Vitest config and CI:** api 90% lines/functions/statements and 85% branches; web 80% across the board.
-- CI (GitHub Actions) runs install, lint, typecheck, and tests with coverage against a Postgres service container. CI must stay green on `main`.
+- CI (GitHub Actions) runs install, lint, typecheck, and tests with coverage against a Postgres service container. CI runs on pushes to `main` and on every pull request, and must stay green on `main`.
 
 ## Frontend (`apps/web`)
 
@@ -150,6 +169,8 @@ Map errors to statuses as follows: `VALIDATION_ERROR` 400, `UNAUTHORIZED` 401, `
 
 - **Never** skip, delete, `.skip`/`.only`, or weaken a test or assertion to make something pass. Never lower coverage thresholds. If a test is wrong, explain why and ask first.
 - **Never** use `--no-verify`, never force-push, and never rewrite pushed history.
+- **Never** commit directly to `main` after setup, and never squash- or rebase-merge a PR.
+- **Never** commit without the `Co-authored-by: Claude <noreply@anthropic.com>` trailer (two empty lines before it).
 - **Never** read, create, edit, or delete `PROMPTS.md`. I maintain it by hand.
 - **Never** copy code from other repositories, gists, or tutorials. Write original code. Library docs from context7 are for API usage, not for pasting projects.
 - **Never** write the "My AI Usage" reflection in the README on my behalf. Leave headed placeholders for me.
