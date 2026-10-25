@@ -1,6 +1,5 @@
-import { type AuthResponse, authResponseSchema } from "@dealership/shared";
+import { type AuthResponse, authResponseSchema, type User, userSchema } from "@dealership/shared";
 import type { ApiClient } from "./client";
-import { type MeResponse, meResponseSchema } from "./contracts";
 
 export type Credentials = { email: string; password: string };
 
@@ -26,8 +25,9 @@ export function createAuthApi(client: ApiClient) {
       });
     },
 
-    me(): Promise<MeResponse> {
-      return client.request("/api/auth/me", { schema: meResponseSchema });
+    // GET /api/auth/me: the user behind a valid token, 401 otherwise.
+    me(): Promise<User> {
+      return client.request("/api/auth/me", { schema: userSchema });
     },
   };
 }

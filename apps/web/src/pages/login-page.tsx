@@ -1,10 +1,10 @@
+import { type LoginRequest, loginRequestSchema } from "@dealership/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { useApi } from "@/api/api-provider";
-import { type LoginRequest, loginRequestSchema } from "@/api/contracts";
 import { ApiError } from "@/api/errors";
 import { applyFormErrors } from "@/auth/apply-form-errors";
 import { authFormErrorMap } from "@/auth/auth-form-errors";
