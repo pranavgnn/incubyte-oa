@@ -3,6 +3,7 @@ import { useApi } from "@/api/api-provider";
 import { ApiError } from "@/api/errors";
 import type { Vehicle } from "@/api/vehicle-contracts";
 import { actionErrorMessage, ERROR_TOAST_MS } from "../action-errors";
+import { DeleteVehicleDialog } from "./delete-vehicle-dialog";
 import { RestockDialog } from "./restock-dialog";
 import type { VehicleAction } from "./vehicle-actions";
 import { VehicleFormDialog } from "./vehicle-form-dialog";
@@ -92,5 +93,15 @@ export function AdminDialogs({ dialog, onClose, onChanged }: AdminDialogsProps) 
       />
     );
   }
-  return null;
+  return (
+    <DeleteVehicleDialog
+      vehicle={vehicle}
+      onConfirm={async () => {
+        await vehiclesApi.remove(vehicle.id);
+        succeed("Vehicle deleted");
+      }}
+      onError={handleError}
+      onClose={onClose}
+    />
+  );
 }
