@@ -90,6 +90,8 @@ function InputGroupButton({
       type={type}
       data-size={size}
       variant={variant}
+      // Forwards the caller's className, which is linted where it is written.
+      // oxlint-disable-next-line shadcn/require-static-classes
       className={cn(inputGroupButtonVariants({ size }), className)}
       {...props}
     />
