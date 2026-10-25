@@ -51,3 +51,9 @@ export const createVehicleRequestSchema = z.strictObject({
 });
 
 export type CreateVehicleRequest = z.infer<typeof createVehicleRequestSchema>;
+
+export const vehicleSearchQuerySchema = z.strictObject({
+  q: z.string().optional(),
+});
+
+export type VehicleSearchQuery = z.infer<typeof vehicleSearchQuerySchema>;

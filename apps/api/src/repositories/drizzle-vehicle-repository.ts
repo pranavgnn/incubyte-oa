@@ -1,5 +1,5 @@
-import type { CreateVehicleRequest, Vehicle } from "@dealership/shared";
-import { desc } from "drizzle-orm";
+import type { CreateVehicleRequest, Vehicle, VehicleSearchQuery } from "@dealership/shared";
+import { desc, ilike, or } from "drizzle-orm";
 import type { Database } from "../db/client.js";
 import { vehicles } from "../db/schema.js";
 import type { VehicleRepository } from "../services/vehicle-service.js";
@@ -14,6 +14,19 @@ export class DrizzleVehicleRepository implements VehicleRepository {
       .select()
       .from(vehicles)
       // id breaks ties so rows created in the same instant keep a stable order.
+      .orderBy(desc(vehicles.createdAt), desc(vehicles.id));
+    return rows.map(toVehicle);
+  }
+
+  async search(filters: VehicleSearchQuery): Promise<Vehicle[]> {
+    const rows = await this.db
+      .select()
+      .from(vehicles)
+      .where(
+        filters.q === undefined
+          ? undefined
+          : or(ilike(vehicles.make, `%${filters.q}%`), ilike(vehicles.model, `%${filters.q}%`)),
+      )
       .orderBy(desc(vehicles.createdAt), desc(vehicles.id));
     return rows.map(toVehicle);
   }

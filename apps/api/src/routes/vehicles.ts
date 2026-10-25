@@ -1,4 +1,4 @@
-import { createVehicleRequestSchema } from "@dealership/shared";
+import { createVehicleRequestSchema, vehicleSearchQuerySchema } from "@dealership/shared";
 import { type RequestHandler, Router } from "express";
 import type { VehicleController } from "../controllers/vehicle-controller.js";
 import { requireRole } from "../middleware/require-role.js";
@@ -10,6 +10,8 @@ export function vehicleRoutes(controller: VehicleController, authenticate: Reque
   const router = Router();
   router.use(authenticate);
   router.get("/", controller.list);
+  // Registered before any /:id route so "search" is never read as an id.
+  router.get("/search", validate({ query: vehicleSearchQuerySchema }), controller.search);
   router.post(
     "/",
     requireRole("admin"),
