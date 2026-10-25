@@ -15,7 +15,7 @@ export const inventory = [
 ];
 
 // Serves the full list and, separately, search results, recording every
-// search query string the page sends.
+// search query string the page sends and how often the list is loaded.
 export function serveInventory({
   all = inventory,
   results = inventory,
@@ -24,14 +24,18 @@ export function serveInventory({
   results?: Vehicle[];
 } = {}) {
   const searches: string[] = [];
+  const lists = { count: 0 };
   server.use(
-    http.get(`${baseUrl}/api/vehicles`, () => HttpResponse.json(all)),
+    http.get(`${baseUrl}/api/vehicles`, () => {
+      lists.count += 1;
+      return HttpResponse.json(all);
+    }),
     http.get(`${baseUrl}/api/vehicles/search`, ({ request }) => {
       searches.push(new URL(request.url).search);
       return HttpResponse.json(results);
     }),
   );
-  return { searches };
+  return { searches, lists };
 }
 
 export function renderDashboard(path = "/", role: Role = "user") {
