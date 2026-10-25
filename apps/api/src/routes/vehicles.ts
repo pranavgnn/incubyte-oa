@@ -1,5 +1,6 @@
 import {
   createVehicleRequestSchema,
+  purchaseRequestSchema,
   updateVehicleRequestSchema,
   vehicleIdParamsSchema,
   vehicleSearchQuerySchema,
@@ -36,6 +37,10 @@ export function vehicleRoutes(controller: VehicleController, authenticate: Reque
     controller.delete,
   );
   // Any signed-in caller may buy.
-  router.post("/:id/purchase", validate({ params: vehicleIdParamsSchema }), controller.purchase);
+  router.post(
+    "/:id/purchase",
+    validate({ params: vehicleIdParamsSchema, body: purchaseRequestSchema }),
+    controller.purchase,
+  );
   return router;
 }

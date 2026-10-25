@@ -96,3 +96,7 @@ export const updateVehicleRequestSchema = z
   });
 
 export type UpdateVehicleRequest = z.infer<typeof updateVehicleRequestSchema>;
+
+// A purchase always takes exactly one unit, so the body carries nothing.
+// It may be omitted or {}; any field is rejected rather than ignored.
+export const purchaseRequestSchema = z.strictObject({}).optional();
