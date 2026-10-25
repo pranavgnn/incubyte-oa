@@ -42,6 +42,16 @@ export type SeedOptions = {
   log: (message: string) => void;
 };
 
-export async function runSeed(_options: SeedOptions): Promise<void> {
-  throw new Error("not implemented");
+export async function runSeed(options: SeedOptions): Promise<void> {
+  const { email, password } = await seedAdmin(
+    options.db,
+    options.adminEmail as string,
+    options.passwords,
+  );
+  // Printed once and never persisted: store it somewhere safe now.
+  options.log(
+    `Admin credentials (shown once, not stored anywhere):
+  email: ${email}
+  password: ${password}`,
+  );
 }
