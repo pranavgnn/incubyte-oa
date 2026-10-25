@@ -12,6 +12,11 @@ export abstract class AppError extends Error {
   }
 }
 
+export class ValidationError extends AppError {
+  readonly status = 400;
+  readonly code = "VALIDATION_ERROR";
+}
+
 export class ServiceUnavailableError extends AppError {
   readonly status = 503;
   readonly code = "SERVICE_UNAVAILABLE";

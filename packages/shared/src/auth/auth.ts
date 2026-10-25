@@ -5,7 +5,7 @@ export const roleSchema = z.enum(["user", "admin"]);
 export type Role = z.infer<typeof roleSchema>;
 
 export const registerRequestSchema = z.strictObject({
-  email: z.string(),
+  email: z.email(),
   password: z.string(),
 });
 
