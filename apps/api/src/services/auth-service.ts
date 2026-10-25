@@ -61,7 +61,8 @@ export class AuthService {
 
   async currentUser(userId: string): Promise<User> {
     const user = await this.users.findById(userId);
-    if (!user) throw new Error("not implemented");
+    // A token can outlive its user; treat that like any other bad token.
+    if (!user) throw new UnauthorizedError("Invalid or expired token");
     return user;
   }
 }
