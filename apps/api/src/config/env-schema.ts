@@ -20,8 +20,15 @@ export function parseEnv(source: Record<string, string | undefined>): Env {
   return Object.freeze(result.data);
 }
 
+// Integration tests truncate tables, so they must only ever touch a
+// database that was explicitly named as the test database.
 export function resolveTestDatabaseUrl(
-  _env: Pick<Env, "DATABASE_URL" | "TEST_DATABASE_URL">,
+  env: Pick<Env, "DATABASE_URL" | "TEST_DATABASE_URL">,
 ): string {
-  throw new Error("not implemented");
+  if (!env.TEST_DATABASE_URL) {
+    throw new Error(
+      "TEST_DATABASE_URL is not set. Point it at the dedicated test database; tests never fall back to DATABASE_URL.",
+    );
+  }
+  return env.TEST_DATABASE_URL;
 }
