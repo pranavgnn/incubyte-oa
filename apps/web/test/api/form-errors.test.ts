@@ -19,4 +19,31 @@ describe("toFormErrors", () => {
       formError: null,
     });
   });
+
+  it("shows the message in the form alert when a detail cannot be placed on a field", () => {
+    const error = new ApiError(400, "VALIDATION_ERROR", "Malformed JSON body", [
+      { path: [], message: 'Unrecognized key: "role"' },
+    ]);
+
+    expect(toFormErrors(error, fields)).toEqual({
+      fieldErrors: [],
+      formError: "Malformed JSON body",
+    });
+  });
+
+  it("shows the message in the form alert for any other API error", () => {
+    const error = new ApiError(0, "NETWORK_ERROR", "Network error — check your connection");
+
+    expect(toFormErrors(error, fields)).toEqual({
+      fieldErrors: [],
+      formError: "Network error — check your connection",
+    });
+  });
+
+  it("falls back to a generic alert for errors that are not from the API", () => {
+    expect(toFormErrors(new TypeError("boom"), fields)).toEqual({
+      fieldErrors: [],
+      formError: "Something went wrong — please try again",
+    });
+  });
 });
