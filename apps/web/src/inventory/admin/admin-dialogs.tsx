@@ -3,6 +3,7 @@ import { useApi } from "@/api/api-provider";
 import { ApiError } from "@/api/errors";
 import type { Vehicle } from "@/api/vehicle-contracts";
 import { actionErrorMessage, ERROR_TOAST_MS } from "../action-errors";
+import { RestockDialog } from "./restock-dialog";
 import type { VehicleAction } from "./vehicle-actions";
 import { VehicleFormDialog } from "./vehicle-form-dialog";
 import { emptyVehicleForm, toVehicleForm } from "./vehicle-form-schema";
@@ -72,6 +73,19 @@ export function AdminDialogs({ dialog, onClose, onChanged }: AdminDialogsProps) 
         onSubmit={async (input) => {
           await vehiclesApi.update(vehicle.id, input);
           succeed("Changes saved");
+        }}
+        onError={handleError}
+        onClose={onClose}
+      />
+    );
+  }
+  if (dialog.action === "restock") {
+    return (
+      <RestockDialog
+        vehicle={vehicle}
+        onSubmit={async (units) => {
+          await vehiclesApi.restock(vehicle.id, units);
+          succeed(`Restocked: +${units} units`);
         }}
         onError={handleError}
         onClose={onClose}
