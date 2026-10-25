@@ -5,7 +5,7 @@ import type { Vehicle } from "@/api/vehicle-contracts";
 import { actionErrorMessage, ERROR_TOAST_MS } from "../action-errors";
 import type { VehicleAction } from "./vehicle-actions";
 import { VehicleFormDialog } from "./vehicle-form-dialog";
-import { emptyVehicleForm } from "./vehicle-form-schema";
+import { emptyVehicleForm, toVehicleForm } from "./vehicle-form-schema";
 
 export type AdminDialog = { action: "add" } | { action: VehicleAction; vehicle: Vehicle };
 
@@ -53,6 +53,25 @@ export function AdminDialogs({ dialog, onClose, onChanged }: AdminDialogsProps) 
         onSubmit={async (input) => {
           await vehiclesApi.create(input);
           succeed(`${input.make} ${input.model} added`);
+        }}
+        onError={handleError}
+        onClose={onClose}
+      />
+    );
+  }
+  const { vehicle } = dialog;
+  if (dialog.action === "edit") {
+    return (
+      <VehicleFormDialog
+        title="Edit vehicle"
+        description={`Update the details of ${vehicle.make} ${vehicle.model}.`}
+        confirmLabel="Save changes"
+        pendingLabel="Saving…"
+        defaultValues={toVehicleForm(vehicle)}
+        requireDirty
+        onSubmit={async (input) => {
+          await vehiclesApi.update(vehicle.id, input);
+          succeed("Changes saved");
         }}
         onError={handleError}
         onClose={onClose}

@@ -48,6 +48,8 @@ type VehicleFormDialogProps = {
   confirmLabel: string;
   pendingLabel: string;
   defaultValues: VehicleFormValues;
+  // Edit: nothing to save until a field differs from the vehicle.
+  requireDirty?: boolean;
   onSubmit: (input: VehicleInput) => Promise<void>;
   // Returns true when the error was dealt with outside the form (toast,
   // closing the dialog); anything else is shown in the form.
@@ -63,6 +65,7 @@ export function VehicleFormDialog({
   confirmLabel,
   pendingLabel,
   defaultValues,
+  requireDirty = false,
   onSubmit,
   onError,
   onClose,
@@ -159,7 +162,7 @@ export function VehicleFormDialog({
             <Button type="button" variant="ghost" disabled={pending} onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" disabled={pending || (requireDirty && !form.formState.isDirty)}>
               {pending ? (
                 <>
                   <Spinner data-icon="inline-start" />
