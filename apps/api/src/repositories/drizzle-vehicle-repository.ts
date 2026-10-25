@@ -1,4 +1,4 @@
-import type { Vehicle } from "@dealership/shared";
+import type { CreateVehicleRequest, Vehicle } from "@dealership/shared";
 import { desc } from "drizzle-orm";
 import type { Database } from "../db/client.js";
 import { vehicles } from "../db/schema.js";
@@ -16,6 +16,11 @@ export class DrizzleVehicleRepository implements VehicleRepository {
       // id breaks ties so rows created in the same instant keep a stable order.
       .orderBy(desc(vehicles.createdAt), desc(vehicles.id));
     return rows.map(toVehicle);
+  }
+
+  async create(vehicle: CreateVehicleRequest): Promise<Vehicle> {
+    const [row] = await this.db.insert(vehicles).values(vehicle).returning();
+    return toVehicle(row as VehicleRow);
   }
 }
 

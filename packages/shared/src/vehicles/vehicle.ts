@@ -31,3 +31,14 @@ export const vehicleSchema = z.strictObject({
 });
 
 export type Vehicle = z.infer<typeof vehicleSchema>;
+
+export const createVehicleRequestSchema = z.object({
+  make: z.string().trim(),
+  model: z.string().trim(),
+  category: vehicleCategorySchema,
+  price: z.number(),
+  quantity: z.number(),
+  imageUrl: z.string().optional(),
+});
+
+export type CreateVehicleRequest = z.infer<typeof createVehicleRequestSchema>;

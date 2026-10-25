@@ -1,8 +1,9 @@
-import type { Vehicle } from "@dealership/shared";
+import type { CreateVehicleRequest, Vehicle } from "@dealership/shared";
 
 export interface VehicleRepository {
   // Newest first.
   findAll(): Promise<Vehicle[]>;
+  create(vehicle: CreateVehicleRequest): Promise<Vehicle>;
 }
 
 export class VehicleService {
@@ -10,5 +11,9 @@ export class VehicleService {
 
   list(): Promise<Vehicle[]> {
     return this.vehicles.findAll();
+  }
+
+  create(input: CreateVehicleRequest): Promise<Vehicle> {
+    return this.vehicles.create(input);
   }
 }
