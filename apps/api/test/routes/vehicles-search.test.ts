@@ -94,6 +94,22 @@ describe("GET /api/vehicles/search", () => {
     expect(models(response.body)).toEqual(["Model 3", "Transit", "Civic", "Supra", "Corolla"]);
   });
 
+  it.each([
+    { query: { minPrice: "30000", maxPrice: "20000" }, path: ["minPrice"] },
+    { query: { category: "bike" }, path: ["category"] },
+    { query: { minPrice: "cheap" }, path: ["minPrice"] },
+    { query: { minPrice: "-1" }, path: ["minPrice"] },
+    { query: { maxPrice: "1.5" }, path: ["maxPrice"] },
+    { query: { maxPrice: String(2 ** 31) }, path: ["maxPrice"] },
+    { query: { color: "red" }, path: [] },
+  ])("returns 400 VALIDATION_ERROR for $query", async ({ query, path }) => {
+    const response = await search(query);
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe("VALIDATION_ERROR");
+    expect(response.body.error.details).toContainEqual(expect.objectContaining({ path }));
+  });
+
   it("returns 401 without a bearer token", async () => {
     const response = await request(buildApp()).get("/api/vehicles/search");
 
