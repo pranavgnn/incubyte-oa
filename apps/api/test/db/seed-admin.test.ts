@@ -70,4 +70,16 @@ describe("runSeed", () => {
     const [row] = await usersWithEmail("admin@example.com");
     expect(await bcrypt.compare(password, row?.password_hash ?? "")).toBe(true);
   });
+
+  it("refuses to run with a readable error when ADMIN_EMAIL is not set, creating no user", async () => {
+    const log = vi.fn<(message: string) => void>();
+
+    await expect(
+      runSeed({ db: testDatabase.db, adminEmail: undefined, passwords: hasher, log }),
+    ).rejects.toThrow(/ADMIN_EMAIL is not set/);
+
+    expect(log).not.toHaveBeenCalled();
+    const { rows } = await testDatabase.pool.query("SELECT 1 FROM users");
+    expect(rows).toHaveLength(0);
+  });
 });
