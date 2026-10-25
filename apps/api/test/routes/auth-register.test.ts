@@ -15,6 +15,14 @@ async function storedPasswordHash(userId: string): Promise<string> {
   return rows[0]?.password_hash ?? "";
 }
 
+async function storedEmail(userId: string): Promise<string | undefined> {
+  const { rows } = await testDatabase.pool.query<{ email: string }>(
+    "SELECT email FROM users WHERE id = $1",
+    [userId],
+  );
+  return rows[0]?.email;
+}
+
 async function userCount(): Promise<number> {
   const { rows } = await testDatabase.pool.query<{ count: string }>("SELECT count(*) FROM users");
   return Number(rows[0]?.count);
@@ -120,4 +128,12 @@ describe("POST /api/auth/register", () => {
       expect(await userCount()).toBe(0);
     },
   );
+
+  it("trims and lowercases the email before storing and returning it", async () => {
+    const response = await register({ email: "  Alice@Example.COM ", password: "correct-horse" });
+
+    expect(response.status).toBe(201);
+    expect(response.body.user.email).toBe("alice@example.com");
+    expect(await storedEmail(response.body.user.id)).toBe("alice@example.com");
+  });
 });
