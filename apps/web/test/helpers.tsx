@@ -1,4 +1,5 @@
 import { render } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { createMemoryRouter, type RouteObject, RouterProvider } from "react-router";
 import { Toaster } from "sonner";
@@ -18,6 +19,12 @@ export const aliceUser = {
   email: "alice@example.com",
   role: "user",
 } as const;
+
+// user-event without its per-keystroke timer; the interactions are the
+// same, the tests just do not wait between them.
+export function setupUser() {
+  return userEvent.setup({ delay: null });
+}
 
 export function errorBody(code: string, message: string, details: unknown[] = []) {
   return { error: { code, message, details } };

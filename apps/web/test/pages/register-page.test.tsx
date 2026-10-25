@@ -1,9 +1,8 @@
 import { screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import { RegisterPage } from "@/pages/register-page";
-import { aliceUser, baseUrl, errorBody, Page, renderRoutes } from "../helpers";
+import { aliceUser, baseUrl, errorBody, Page, renderRoutes, setupUser } from "../helpers";
 import { server } from "../msw/server";
 
 function renderRegister(path = "/register") {
@@ -19,7 +18,7 @@ function renderRegister(path = "/register") {
 describe("RegisterPage", () => {
   it("states the password rules and checks them, and the confirmation, before sending", async () => {
     renderRegister();
-    const user = userEvent.setup();
+    const user = setupUser();
 
     expect(screen.getByLabelText("Password")).toHaveAccessibleDescription(
       "At least 8 characters, up to 72 bytes.",
@@ -48,7 +47,7 @@ describe("RegisterPage", () => {
       }),
     );
     const { router, tokens } = renderRegister("/register?next=%2F%3Fq%3Dnex");
-    const user = userEvent.setup();
+    const user = setupUser();
 
     await fillForm(user);
     await user.click(screen.getByRole("button", { name: "Create account" }));
@@ -69,7 +68,7 @@ describe("RegisterPage", () => {
       ),
     );
     const { tokens } = renderRegister();
-    const user = userEvent.setup();
+    const user = setupUser();
 
     await fillForm(user);
     await user.click(screen.getByRole("button", { name: "Create account" }));
@@ -95,7 +94,7 @@ describe("RegisterPage", () => {
       ),
     );
     renderRegister();
-    const user = userEvent.setup();
+    const user = setupUser();
 
     await fillForm(user);
     await user.click(screen.getByRole("button", { name: "Create account" }));
@@ -120,7 +119,7 @@ describe("RegisterPage", () => {
       ),
     );
     renderRegister();
-    const user = userEvent.setup();
+    const user = setupUser();
 
     await fillForm(user);
     await user.click(screen.getByRole("button", { name: "Create account" }));
@@ -131,7 +130,7 @@ describe("RegisterPage", () => {
   });
 });
 
-async function fillForm(user: ReturnType<typeof userEvent.setup>) {
+async function fillForm(user: ReturnType<typeof setupUser>) {
   await user.type(screen.getByLabelText("Email"), "alice@example.com");
   await user.type(screen.getByLabelText("Password"), "correct horse");
   await user.type(screen.getByLabelText("Confirm password"), "correct horse");

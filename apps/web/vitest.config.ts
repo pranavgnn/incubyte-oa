@@ -6,6 +6,11 @@ export default mergeConfig(
   defineConfig({
     test: {
       environment: "jsdom",
+      // Worker threads start faster than the default forked processes.
+      pool: "threads",
+      // Tailwind and the font stylesheets are not needed to query the DOM
+      // by role and label, so CSS imports resolve to empty strings.
+      css: false,
       include: ["test/**/*.test.{ts,tsx}"],
       setupFiles: ["test/setup.ts"],
       // Tests build their own config through the same env schema as the app.

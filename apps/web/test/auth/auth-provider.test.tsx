@@ -1,5 +1,4 @@
 import { act, render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { HttpResponse, http } from "msw";
 import { Toaster } from "sonner";
 import { describe, expect, it } from "vitest";
@@ -8,6 +7,7 @@ import { createApiClient } from "@/api/client";
 import { AuthProvider, useAuth } from "@/auth/auth-provider";
 import { createSessionExpiry } from "@/auth/session-expiry";
 import { createTokenStorage } from "@/auth/token-storage";
+import { setupUser } from "../helpers";
 import { server } from "../msw/server";
 
 const baseUrl = "http://api.test";
@@ -64,7 +64,7 @@ describe("AuthProvider", () => {
   it("signs in with a session by storing its token and exposing its user", async () => {
     const { tokens } = renderWithAuth();
 
-    await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    await setupUser().click(screen.getByRole("button", { name: "Sign in" }));
 
     expect(screen.getByText("signed in as alice@example.com")).toBeInTheDocument();
     expect(tokens.get()).toBe("fresh");
@@ -72,9 +72,9 @@ describe("AuthProvider", () => {
 
   it("signs out by clearing the token and the user", async () => {
     const { tokens } = renderWithAuth();
-    await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    await setupUser().click(screen.getByRole("button", { name: "Sign in" }));
 
-    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    await setupUser().click(screen.getByRole("button", { name: "Sign out" }));
 
     expect(screen.getByText("signed-out")).toBeInTheDocument();
     expect(tokens.get()).toBeNull();
@@ -117,7 +117,7 @@ describe("AuthProvider", () => {
       ),
     );
     const { tokens, authApi } = renderWithAuth();
-    await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    await setupUser().click(screen.getByRole("button", { name: "Sign in" }));
 
     await act(() => authApi.me().catch(() => {}));
 

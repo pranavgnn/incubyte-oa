@@ -1,5 +1,4 @@
 import { screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { HttpResponse, http } from "msw";
 import { describe, expect, it, vi } from "vitest";
 import type { Vehicle } from "@/api/vehicle-contracts";
@@ -10,7 +9,7 @@ import {
   renderDashboard,
   serveInventory,
 } from "../dashboard-helpers";
-import { baseUrl, errorBody } from "../helpers";
+import { baseUrl, errorBody, setupUser } from "../helpers";
 import { server } from "../msw/server";
 
 describe("DashboardPage data source", () => {
@@ -63,7 +62,7 @@ describe("DashboardPage states", () => {
   it("clears every filter from the no-matches state", async () => {
     serveInventory({ results: [] });
     const { router } = renderDashboard("/?make=Tata&q=zz");
-    const user = userEvent.setup();
+    const user = setupUser();
 
     await user.click(await screen.findByRole("button", { name: "Clear filters" }));
 
@@ -82,7 +81,7 @@ describe("DashboardPage states", () => {
       }),
     );
     renderDashboard();
-    const user = userEvent.setup();
+    const user = setupUser();
 
     const alert = await screen.findByRole("alert");
     expect(alert).toHaveTextContent("Couldn't load inventory");
@@ -99,7 +98,7 @@ describe("DashboardPage filter bar", () => {
     const served = serveInventory();
     const view = renderDashboard(path);
     await cardTitles();
-    return { ...served, ...view, user: userEvent.setup() };
+    return { ...served, ...view, user: setupUser() };
   }
 
   it("debounces typing into one search with q", async () => {
@@ -198,7 +197,7 @@ describe("DashboardPage purchase", () => {
     );
     renderDashboard();
     await cardTitles();
-    const user = userEvent.setup();
+    const user = setupUser();
 
     await user.click(nexonCard().getByRole("button", { name: "Purchase" }));
 
@@ -272,7 +271,7 @@ describe("DashboardPage purchase", () => {
     );
     renderDashboard();
     await cardTitles();
-    const user = userEvent.setup();
+    const user = setupUser();
 
     await user.click(nexonCard().getByRole("button", { name: "Purchase" }));
 
@@ -318,7 +317,7 @@ describe("DashboardPage admin controls", () => {
     serveInventory();
     renderDashboard("/", "admin");
     await cardTitles();
-    const user = userEvent.setup();
+    const user = setupUser();
 
     await user.click(screen.getByRole("button", { name: "Actions for Tata Nexon" }));
 
