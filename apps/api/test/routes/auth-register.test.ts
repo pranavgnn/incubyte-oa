@@ -74,4 +74,15 @@ describe("POST /api/auth/register", () => {
     });
     expect(await userCount()).toBe(0);
   });
+
+  it("returns 400 VALIDATION_ERROR when the password is shorter than 8 characters", async () => {
+    const response = await register({ email: "alice@example.com", password: "1234567" });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe("VALIDATION_ERROR");
+    expect(response.body.error.details).toEqual([
+      { path: ["password"], message: expect.any(String) },
+    ]);
+    expect(await userCount()).toBe(0);
+  });
 });
