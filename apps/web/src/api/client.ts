@@ -1,4 +1,6 @@
+import { errorResponseSchema } from "@dealership/shared";
 import type { z } from "zod";
+import { ApiError } from "./errors";
 
 export type ApiClientOptions = {
   baseUrl: string;
@@ -15,7 +17,12 @@ export function createApiClient({ baseUrl }: ApiClientOptions) {
     { method = "GET", schema }: RequestOptions<T>,
   ): Promise<T> {
     const response = await fetch(new URL(path, baseUrl), { method });
-    return schema.parse(await response.json());
+    const body: unknown = await response.json();
+    if (!response.ok) {
+      const { error } = errorResponseSchema.parse(body);
+      throw new ApiError(response.status, error.code, error.message, error.details);
+    }
+    return schema.parse(body);
   }
 
   return { request };
