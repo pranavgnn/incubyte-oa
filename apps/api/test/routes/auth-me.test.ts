@@ -8,6 +8,10 @@ async function registerUser(email: string, password: string) {
   return response.body as { token: string; user: { id: string; email: string; role: string } };
 }
 
+const AUTHENTICATION_REQUIRED = {
+  error: { code: "UNAUTHORIZED", message: "Authentication required", details: [] },
+};
+
 function me(authorization?: string) {
   const req = request(buildApp()).get("/api/auth/me");
   return authorization === undefined ? req : req.set("Authorization", authorization);
@@ -21,5 +25,12 @@ describe("GET /api/auth/me", () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ id: user.id, email: "alice@example.com", role: "user" });
+  });
+
+  it("returns 401 Authentication required when there is no Authorization header", async () => {
+    const response = await me();
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual(AUTHENTICATION_REQUIRED);
   });
 });
