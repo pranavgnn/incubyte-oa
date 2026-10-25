@@ -62,4 +62,18 @@ describe("api client", () => {
       details: [],
     });
   });
+
+  it("throws a NETWORK_ERROR ApiError when the request never reaches the API", async () => {
+    server.use(http.get(pingUrl, () => HttpResponse.error()));
+    const client = createApiClient({ baseUrl });
+
+    const error = await client.request("/api/ping", { schema: pingSchema }).catch((e) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({
+      status: 0,
+      code: "NETWORK_ERROR",
+      message: "Network error — check your connection",
+    });
+  });
 });
