@@ -38,7 +38,7 @@ export class AuthService {
 
   async login(input: LoginRequest): Promise<AuthResponse> {
     const found = await this.users.findByEmail(input.email);
-    if (!found) throw new Error("not implemented");
+    if (!found) throw new UnauthorizedError("Invalid credentials");
     const { passwordHash, ...user } = found;
     if (!(await this.passwords.verify(input.password, passwordHash))) {
       throw new UnauthorizedError("Invalid credentials");
