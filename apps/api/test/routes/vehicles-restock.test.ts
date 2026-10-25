@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import request from "supertest";
 import { describe, expect, it } from "vitest";
@@ -40,4 +41,59 @@ describe("POST /api/vehicles/:id/restock", () => {
       expect(response.body).toEqual(asJson(stored as NonNullable<typeof stored>));
     },
   );
+
+  it("returns 403 FORBIDDEN for a non-admin and leaves stock alone", async () => {
+    const vehicle = await insertVehicle({ quantity: 2 });
+
+    const response = await restock(vehicle.id, { quantity: 5 }, "user");
+
+    expect(response.status).toBe(403);
+    expect(response.body.error.code).toBe("FORBIDDEN");
+    expect((await storedVehicle(vehicle.id))?.quantity).toBe(2);
+  });
+
+  it("returns 401 without a bearer token", async () => {
+    const vehicle = await insertVehicle();
+
+    const response = await request(buildApp())
+      .post(`/api/vehicles/${vehicle.id}/restock`)
+      .send({ quantity: 5 });
+
+    expect(response.status).toBe(401);
+  });
+
+  it.each([
+    { label: "quantity is 0", body: { quantity: 0 }, path: ["quantity"] },
+    { label: "quantity is negative", body: { quantity: -3 }, path: ["quantity"] },
+    { label: "quantity is above 1000", body: { quantity: 1001 }, path: ["quantity"] },
+    { label: "quantity is not an integer", body: { quantity: 2.5 }, path: ["quantity"] },
+    { label: "quantity is a string", body: { quantity: "5" }, path: ["quantity"] },
+    { label: "quantity is missing", body: {}, path: ["quantity"] },
+    { label: "an unknown key is sent", body: { quantity: 5, price: 1 }, path: [] },
+  ])("returns 400 VALIDATION_ERROR when $label, leaving stock alone", async ({ body, path }) => {
+    const vehicle = await insertVehicle({ quantity: 2 });
+
+    const response = await restock(vehicle.id, body);
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe("VALIDATION_ERROR");
+    expect(response.body.error.details).toContainEqual(expect.objectContaining({ path }));
+    expect((await storedVehicle(vehicle.id))?.quantity).toBe(2);
+  });
+
+  it("returns 400 VALIDATION_ERROR when the id is not a uuid", async () => {
+    const response = await restock("nope", { quantity: 5 });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.details).toContainEqual(expect.objectContaining({ path: ["id"] }));
+  });
+
+  it("returns 404 NOT_FOUND when no vehicle has the id", async () => {
+    const response = await restock(randomUUID(), { quantity: 5 });
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      error: { code: "NOT_FOUND", message: "Vehicle not found", details: [] },
+    });
+  });
 });
