@@ -1,10 +1,11 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import type { Vehicle } from "@/api/vehicle-contracts";
 import { DashboardPage } from "@/pages/dashboard-page";
 import { aVehicle } from "../fixtures";
-import { aliceUser, baseUrl, renderRoutes } from "../helpers";
+import { aliceUser, baseUrl, errorBody, renderRoutes } from "../helpers";
 import { server } from "../msw/server";
 
 type Role = "user" | "admin";
@@ -77,5 +78,52 @@ describe("DashboardPage data source", () => {
     renderDashboard("/?make=Tata");
 
     expect(await screen.findByText("3 vehicles · 2 in stock")).toBeInTheDocument();
+  });
+});
+
+describe("DashboardPage states", () => {
+  it.each<[string, string, Vehicle[], Vehicle[], string]>([
+    ["an empty inventory", "/", [], [], "No vehicles yet"],
+    ["a search without matches", "/?make=Tata", inventory, [], "No matches"],
+  ])("shows an empty state for %s", async (_label, path, all, results, title) => {
+    serveInventory({ all, results });
+
+    renderDashboard(path);
+
+    expect(await screen.findByRole("heading", { name: title })).toBeInTheDocument();
+    expect(screen.queryByRole("listitem")).not.toBeInTheDocument();
+  });
+
+  it("clears every filter from the no-matches state", async () => {
+    serveInventory({ results: [] });
+    const { router } = renderDashboard("/?make=Tata&q=zz");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Clear filters" }));
+
+    expect(router.state.location.search).toBe("");
+    expect(await cardTitles()).toEqual(["Nexon", "Thar", "Punch"]);
+  });
+
+  it("shows the error with a retry that reloads the inventory", async () => {
+    let calls = 0;
+    server.use(
+      http.get(`${baseUrl}/api/vehicles`, () => {
+        calls += 1;
+        return calls === 1
+          ? HttpResponse.json(errorBody("INTERNAL_ERROR", "Database is down"), { status: 500 })
+          : HttpResponse.json(inventory);
+      }),
+    );
+    renderDashboard();
+    const user = userEvent.setup();
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Couldn't load inventory");
+    expect(alert).toHaveTextContent("Database is down");
+    await user.click(within(alert).getByRole("button", { name: "Retry" }));
+
+    expect(await cardTitles()).toEqual(["Nexon", "Thar", "Punch"]);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });
