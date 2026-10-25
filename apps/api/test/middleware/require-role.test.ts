@@ -49,4 +49,19 @@ describe("requireRole", () => {
       error: { code: "FORBIDDEN", message: "Insufficient permissions", details: [] },
     });
   });
+
+  it("returns 401 Authentication required when no identity was set, e.g. authenticate is not mounted", async () => {
+    const app = express();
+    app.get("/admin-only", requireRole("admin"), (_req, res) => {
+      res.json({ ok: true });
+    });
+    app.use(errorHandler);
+
+    const response = await request(app).get("/admin-only");
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({
+      error: { code: "UNAUTHORIZED", message: "Authentication required", details: [] },
+    });
+  });
 });
