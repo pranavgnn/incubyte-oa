@@ -32,13 +32,22 @@ export const vehicleSchema = z.strictObject({
 
 export type Vehicle = z.infer<typeof vehicleSchema>;
 
-export const createVehicleRequestSchema = z.object({
-  make: z.string().trim(),
-  model: z.string().trim(),
+// Trimmed first, so a name of only spaces counts as empty.
+const vehicleNameSchema = z.string().trim().min(1);
+
+// Postgres integer columns are int32; bounding here keeps an oversized
+// number a 400 instead of a database error.
+const priceSchema = z.int32().positive();
+
+const imageUrlSchema = z.url({ protocol: /^https$/ });
+
+export const createVehicleRequestSchema = z.strictObject({
+  make: vehicleNameSchema,
+  model: vehicleNameSchema,
   category: vehicleCategorySchema,
-  price: z.number(),
-  quantity: z.number(),
-  imageUrl: z.string().optional(),
+  price: priceSchema,
+  quantity: z.int32().nonnegative(),
+  imageUrl: imageUrlSchema.optional(),
 });
 
 export type CreateVehicleRequest = z.infer<typeof createVehicleRequestSchema>;
