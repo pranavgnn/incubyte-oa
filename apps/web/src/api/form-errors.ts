@@ -18,14 +18,22 @@ export function toFormErrors<F extends string>(
   error: unknown,
   fields: readonly F[],
 ): FormErrors<F> {
+  if (!(error instanceof ApiError)) {
+    return { fieldErrors: [], formError: "Something went wrong — please try again" };
+  }
   const result: FormErrors<F> = { fieldErrors: [], formError: null };
-  if (error instanceof ApiError && error.code === "VALIDATION_ERROR") {
+  let unplaced = error.code !== "VALIDATION_ERROR" || error.details.length === 0;
+  if (error.code === "VALIDATION_ERROR") {
     for (const detail of error.details) {
       const issue = issueSchema.safeParse(detail);
-      if (!issue.success) continue;
-      const field = fields.find((name) => name === issue.data.path[0]);
-      if (field) result.fieldErrors.push({ field, message: issue.data.message });
+      const field = issue.success && fields.find((name) => name === issue.data.path[0]);
+      if (issue.success && field) {
+        result.fieldErrors.push({ field, message: issue.data.message });
+      } else {
+        unplaced = true;
+      }
     }
   }
+  if (unplaced) result.formError = error.message;
   return result;
 }
