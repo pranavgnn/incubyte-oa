@@ -26,4 +26,13 @@ describe("error handling", () => {
     });
     expect(response.text).not.toContain("secret_table");
   });
+
+  it("returns 404 in the error shape for unknown routes", async () => {
+    const response = await request(buildApp()).get("/api/does-not-exist");
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      error: { code: "NOT_FOUND", message: "Route GET /api/does-not-exist not found", details: [] },
+    });
+  });
 });
