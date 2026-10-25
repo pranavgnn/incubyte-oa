@@ -1,5 +1,5 @@
 import { HttpResponse, http } from "msw";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { createApiClient } from "@/api/client";
 import { ApiError } from "@/api/errors";
@@ -90,5 +90,20 @@ describe("api client", () => {
     await client.request("/api/ping", { schema: pingSchema });
 
     expect(authorization).toBe("Bearer abc.def.ghi");
+  });
+
+  it("calls onUnauthorized and still rejects when the API answers 401", async () => {
+    server.use(
+      http.get(pingUrl, () =>
+        HttpResponse.json(errorBody("UNAUTHORIZED", "Invalid or expired token"), { status: 401 }),
+      ),
+    );
+    const onUnauthorized = vi.fn();
+    const client = createApiClient({ baseUrl, getToken: () => "expired", onUnauthorized });
+
+    const error = await client.request("/api/ping", { schema: pingSchema }).catch((e) => e);
+
+    expect(error).toMatchObject({ code: "UNAUTHORIZED" });
+    expect(onUnauthorized).toHaveBeenCalledOnce();
   });
 });

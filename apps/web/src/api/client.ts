@@ -5,6 +5,7 @@ import { ApiError } from "./errors";
 export type ApiClientOptions = {
   baseUrl: string;
   getToken?: () => string | null;
+  onUnauthorized?: () => void;
 };
 
 type RequestOptions<T> = {
