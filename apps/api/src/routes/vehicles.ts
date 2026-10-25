@@ -22,6 +22,11 @@ export function vehicleRoutes(controller: VehicleController, authenticate: Reque
     validate({ body: createVehicleRequestSchema }),
     controller.create,
   );
-  router.put("/:id", validate({ body: updateVehicleRequestSchema }), controller.update);
+  router.put(
+    "/:id",
+    requireRole("admin"),
+    validate({ body: updateVehicleRequestSchema }),
+    controller.update,
+  );
   return router;
 }
