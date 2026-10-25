@@ -4,6 +4,8 @@ import { DrizzleHealthRepository } from "../../src/repositories/drizzle-health-r
 import { type HealthRepository, HealthService } from "../../src/services/health-service.js";
 import { testDatabase } from "../db.js";
 
+export const TEST_WEB_ORIGIN = "http://localhost:5173";
+
 type Overrides = {
   healthRepository?: HealthRepository;
   healthService?: HealthService;
@@ -16,6 +18,7 @@ export function buildApp(overrides: Overrides = {}) {
     overrides.healthRepository ?? new DrizzleHealthRepository(testDatabase.db);
   const healthService = overrides.healthService ?? new HealthService(healthRepository);
   return createApp({
+    config: { webOrigin: TEST_WEB_ORIGIN },
     healthController: new HealthController(healthService),
   });
 }

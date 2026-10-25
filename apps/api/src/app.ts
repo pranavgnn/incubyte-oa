@@ -5,7 +5,12 @@ import { errorHandler } from "./middleware/error-handler.js";
 import { notFound } from "./middleware/not-found.js";
 import { healthRoutes } from "./routes/health.js";
 
+export type AppConfig = {
+  webOrigin: string;
+};
+
 export type AppDeps = {
+  config: AppConfig;
   healthController: HealthController;
 };
 
