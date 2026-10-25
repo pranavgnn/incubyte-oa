@@ -67,6 +67,9 @@ describe("Add vehicle validation", () => {
     ["Quantity", "1.5", "Enter a whole number, 0 or more"],
     ["Image URL", "http://img.test/car.webp", "Use an https:// image URL"],
     ["Image URL", "not a url", "Use an https:// image URL"],
+    // The database columns are int32, as in the shared create schema.
+    ["Price", "2147483648", "Price is too high"],
+    ["Quantity", "2147483648", "Quantity is too high"],
   ])("rejects %s %j", async (label, value, message) => {
     const { user, dialog } = await openAddDialog();
 
@@ -254,16 +257,23 @@ describe("Restock", () => {
     await vi.waitFor(() => expect(lists.count).toBe(2));
   });
 
-  it.each(["0", "-3", "1.5", ""])("rejects %j units and sends nothing", async (units) => {
+  const unitsMessage = "Enter a whole number of at least 1";
+
+  it.each<[string, string]>([
+    ["0", unitsMessage],
+    ["-3", unitsMessage],
+    ["1.5", unitsMessage],
+    ["", unitsMessage],
+    // MAX_RESTOCK_QUANTITY in the shared restock schema.
+    ["1001", "Restock at most 1000 units at a time"],
+  ])("rejects %j units and sends nothing", async (units, message) => {
     const { user, dialog } = await openRestockDialog();
 
     await user.clear(dialog.getByLabelText("Add units"));
     if (units) await user.type(dialog.getByLabelText("Add units"), units);
     await user.click(dialog.getByRole("button", { name: "Restock" }));
 
-    expect(dialog.getByLabelText("Add units")).toHaveAccessibleDescription(
-      "Enter a whole number of at least 1",
-    );
+    expect(dialog.getByLabelText("Add units")).toHaveAccessibleDescription(message);
   });
 });
 
