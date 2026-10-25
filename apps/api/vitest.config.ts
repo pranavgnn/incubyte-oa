@@ -8,6 +8,8 @@ if (existsSync(".env")) process.loadEnvFile(".env");
 export default defineConfig({
   test: {
     include: ["test/**/*.test.ts"],
+    globalSetup: ["test/global-setup.ts"],
+    setupFiles: ["test/setup.ts"],
     // Integration tests share one Postgres test database.
     fileParallelism: false,
     coverage: {
