@@ -9,7 +9,9 @@ export type Role = z.infer<typeof roleSchema>;
 const MAX_PASSWORD_BYTES = 72;
 
 export const registerRequestSchema = z.strictObject({
-  email: z.email(),
+  // Normalised before the format check so stray whitespace or capitals
+  // never create a second account for the same mailbox.
+  email: z.string().trim().toLowerCase().pipe(z.email()),
   password: z
     .string()
     .min(8)
