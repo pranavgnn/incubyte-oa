@@ -22,7 +22,7 @@ export const registerRequestSchema = z.strictObject({
 
 export type RegisterRequest = z.infer<typeof registerRequestSchema>;
 
-export const loginRequestSchema = z.object({
+export const loginRequestSchema = z.strictObject({
   // Same normalisation as register, so the lookup matches the stored email.
   email: z.string().trim().toLowerCase().pipe(z.email()),
   // Non-empty only. The register policy (length, byte cap) is not repeated
