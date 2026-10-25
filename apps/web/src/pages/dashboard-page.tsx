@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useSearchParams } from "react-router";
+import { FilterBar } from "@/inventory/filter-bar";
 import {
   InventoryError,
   InventorySkeleton,
@@ -18,6 +19,7 @@ export function DashboardPage() {
   const all = inventory.all ?? [];
   const inStock = all.filter((vehicle) => vehicle.quantity > 0).length;
   const clearFilters = () => setSearchParams({});
+  const refetching = inventory.loading && inventory.results !== null;
 
   return (
     <>
@@ -32,7 +34,16 @@ export function DashboardPage() {
           )}
         </div>
       </section>
-      <div className="mx-auto mt-8 max-w-page px-4 pb-12 sm:px-6 lg:px-8">
+      <div className="mx-auto -mt-10 flex max-w-page flex-col gap-8 px-4 pb-12 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-2">
+          <FilterBar filters={filters} vehicles={inventory.all} />
+          <div className="h-0.5 overflow-hidden rounded-full">
+            {refetching && <div className="h-full w-1/3 bg-brand motion-safe:animate-pulse" />}
+          </div>
+          <p aria-live="polite" className="sr-only">
+            {inventory.results && `${inventory.results.length} results`}
+          </p>
+        </div>
         <InventoryGrid
           inventory={inventory}
           filtered={hasActiveFilters(filters)}

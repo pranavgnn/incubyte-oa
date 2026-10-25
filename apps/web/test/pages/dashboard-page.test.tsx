@@ -91,7 +91,7 @@ describe("DashboardPage states", () => {
     renderDashboard(path);
 
     expect(await screen.findByRole("heading", { name: title })).toBeInTheDocument();
-    expect(screen.queryByRole("listitem")).not.toBeInTheDocument();
+    expect(screen.queryAllByRole("heading", { level: 3 })).toEqual([]);
   });
 
   it("clears every filter from the no-matches state", async () => {

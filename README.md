@@ -1,11 +1,4 @@
-AI Usage
 
-1. Made claude on web generate me a robust CLAUDE.md. https://claude.ai/share/be8e9526-e5af-4376-849b-777031fe3150
-2. Scaffolding project using Claude Code CLI. See [PROMPTS.md](./PROMPTS.md)
-
-Noticed that everything commits to main, I'd like to have it work in a branch, submit a pull request (i will manually code review), then on approval, merge. So changed CLAUDE.md
-
-3. Make claude on web generate me a robust DESIGN.md given some reference images from pinterest. https://claude.ai/share/9b0351ce-cd1e-4a79-91ed-ccb088fd1d05
 
 ## Design decisions
 
@@ -24,6 +17,9 @@ Places where the implementation is stricter than, or extends, the brief.
 - **The web app lints design-system rules with oxlint and `@shadcn/lint`, with `no-restyle` off.** No raw colors, no arbitrary values, no inline styles, no unknown Tailwind classes and no dynamically built class strings are errors in `apps/web`. `no-restyle` stays off because DESIGN.md deliberately adds layout and token classes at call sites (for example `max-w-form` on the auth card). The shadcn-generated files in `src/components/ui/**` are exempt from `no-arbitrary-values` only, since they ship values like `ring-[3px]`; every other rule still applies to them.
 - **Web coverage excludes the generated shadcn primitives.** `src/components/ui/**` is CLI output, not code written in this repo, so measuring it would reward testing a vendor's components instead of the app. It is excluded along with the `main.tsx` bootstrap; the 80% thresholds apply to everything else in `apps/web/src`.
 - **The web app temporarily mirrors the login and `/api/auth/me` contracts.** Register, user and auth-response schemas come from `@dealership/shared`, but the login request and the `GET /api/auth/me` response are still being added on the API side. `apps/web/src/api/contracts.ts` defines just those two, built on the shared `userSchema`, and is marked for deletion once `feat/auth-login` merges so the shared package stays the single source of truth.
+- **The web app temporarily mirrors the vehicle contract from DESIGN.md section 0.** The API has not added vehicle schemas to `@dealership/shared` yet, so `apps/web/src/api/vehicle-contracts.ts` defines the `Vehicle` shape, the category enum and the request types, marked for deletion once the shared package has them. Write responses (purchase, create, update, restock, delete) are not parsed, because section 0 does not define their bodies and the dashboard refetches after every write.
+- **The price filter is two whole-number inputs, not a slider.** Empty means no bound, and the placeholders show the cheapest and dearest vehicle in the full list. A bound is sent as soon as it is typed (debounced 300 ms), so `minPrice`/`maxPrice` mean exactly what the user entered. A minimum above the maximum is shown as an inline error and is never sent.
+- **Filter params from the URL are validated before use.** Each param is parsed on its own with Zod: blank values, unknown categories, non-integer or negative prices, and a `model` without a `make` are dropped instead of being forwarded to the API. A hand-edited or stale link therefore still loads, with only the bad filter ignored.
 - **After sign-in the app only follows a same-origin `next`.** `/login?next=…` comes from the URL, so anyone can craft a link with `next=https://evil.example`. Only values that start with a single `/` are followed; absolute, protocol-relative (`//host`) and backslash (`/\host`) forms fall back to `/`, so the login page cannot be used as an open redirect.
 
 ## Deploy
