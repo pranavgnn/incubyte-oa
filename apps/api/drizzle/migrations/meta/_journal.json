@@ -8,6 +8,34 @@
       "when": 1792922041121,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792929935100,
+      "tag": "0001_create_users",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792930141529,
+      "tag": "0002_add_user_password_hash",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792930718264,
+      "tag": "0003_unique_user_email",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792930910855,
+      "tag": "0004_case_insensitive_user_email",
+      "breakpoints": true
     }
   ]
 }

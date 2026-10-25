@@ -1,4 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Shared code runs in Node and the browser; DOM types cover web APIs
+    // both provide, such as TextEncoder.
+    "lib": ["ES2023", "DOM"]
+  },
   "include": ["src"]
 }

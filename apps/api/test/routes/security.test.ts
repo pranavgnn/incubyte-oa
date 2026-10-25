@@ -19,4 +19,15 @@ describe("security middleware", () => {
     expect(allowed.headers["access-control-allow-origin"]).toBe(TEST_WEB_ORIGIN);
     expect(denied.headers["access-control-allow-origin"]).toBeUndefined();
   });
+
+  it("returns 413 PAYLOAD_TOO_LARGE for a JSON body over 10kb", async () => {
+    const response = await request(buildApp())
+      .post("/api/auth/register")
+      .send({ email: "alice@example.com", password: "x".repeat(11 * 1024) });
+
+    expect(response.status).toBe(413);
+    expect(response.body).toEqual({
+      error: { code: "PAYLOAD_TOO_LARGE", message: "Request body is too large", details: [] },
+    });
+  });
 });

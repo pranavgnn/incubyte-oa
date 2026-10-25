@@ -35,4 +35,16 @@ describe("error handling", () => {
       error: { code: "NOT_FOUND", message: "Route GET /api/does-not-exist not found", details: [] },
     });
   });
+
+  it("returns 400 VALIDATION_ERROR for a malformed JSON body", async () => {
+    const response = await request(buildApp())
+      .post("/api/auth/register")
+      .set("Content-Type", "application/json")
+      .send('{"email": "alice@example.com",');
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      error: { code: "VALIDATION_ERROR", message: "Malformed JSON body", details: [] },
+    });
+  });
 });
