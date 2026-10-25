@@ -1,4 +1,9 @@
-import type { CreateVehicleRequest, Vehicle, VehicleSearchQuery } from "@dealership/shared";
+import type {
+  CreateVehicleRequest,
+  UpdateVehicleRequest,
+  Vehicle,
+  VehicleSearchQuery,
+} from "@dealership/shared";
 import type { Request, Response } from "express";
 import type { VehicleService } from "../services/vehicle-service.js";
 
@@ -19,5 +24,12 @@ export class VehicleController {
     res: Response<Vehicle>,
   ): Promise<void> => {
     res.status(201).json(await this.service.create(req.body));
+  };
+
+  update = async (
+    req: Request<{ id: string }, Vehicle, UpdateVehicleRequest>,
+    res: Response<Vehicle>,
+  ): Promise<void> => {
+    res.status(200).json(await this.service.update(req.params.id, req.body));
   };
 }

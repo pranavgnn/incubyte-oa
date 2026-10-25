@@ -74,3 +74,16 @@ export const vehicleSearchQuerySchema = z
   );
 
 export type VehicleSearchQuery = z.infer<typeof vehicleSearchQuerySchema>;
+
+export const updateVehicleRequestSchema = z
+  .strictObject({
+    make: vehicleNameSchema,
+    model: vehicleNameSchema,
+    category: vehicleCategorySchema,
+    price: priceSchema,
+    // null removes the image.
+    imageUrl: imageUrlSchema.nullable(),
+  })
+  .partial();
+
+export type UpdateVehicleRequest = z.infer<typeof updateVehicleRequestSchema>;

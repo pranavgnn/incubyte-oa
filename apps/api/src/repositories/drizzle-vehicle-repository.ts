@@ -1,5 +1,10 @@
-import type { CreateVehicleRequest, Vehicle, VehicleSearchQuery } from "@dealership/shared";
-import { and, desc, eq, gte, ilike, lte, or } from "drizzle-orm";
+import type {
+  CreateVehicleRequest,
+  UpdateVehicleRequest,
+  Vehicle,
+  VehicleSearchQuery,
+} from "@dealership/shared";
+import { and, desc, eq, gte, ilike, lte, or, sql } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
 import type { Database } from "../db/client.js";
 import { vehicles } from "../db/schema.js";
@@ -34,6 +39,15 @@ export class DrizzleVehicleRepository implements VehicleRepository {
 
   async create(vehicle: CreateVehicleRequest): Promise<Vehicle> {
     const [row] = await this.db.insert(vehicles).values(vehicle).returning();
+    return toVehicle(row as VehicleRow);
+  }
+
+  async update(id: string, changes: UpdateVehicleRequest): Promise<Vehicle> {
+    const [row] = await this.db
+      .update(vehicles)
+      .set({ ...changes, updatedAt: sql`now()` })
+      .where(eq(vehicles.id, id))
+      .returning();
     return toVehicle(row as VehicleRow);
   }
 }
