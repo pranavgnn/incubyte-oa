@@ -99,4 +99,25 @@ describe("POST /api/auth/register", () => {
 
     expect(response.status).toBe(201);
   });
+
+  it.each([
+    { key: "role", value: "admin" },
+    { key: "nickname", value: "al" },
+  ])(
+    "returns 400 VALIDATION_ERROR for the unknown key $key and creates no user",
+    async ({ key, value }) => {
+      const response = await register({
+        email: "alice@example.com",
+        password: "correct-horse",
+        [key]: value,
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error.code).toBe("VALIDATION_ERROR");
+      expect(response.body.error.details).toEqual([
+        { path: [], message: expect.stringContaining(key) },
+      ]);
+      expect(await userCount()).toBe(0);
+    },
+  );
 });
