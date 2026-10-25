@@ -20,12 +20,15 @@ function errorBody(code: string, message: string) {
 }
 
 function AuthStatus() {
-  const { state, signIn } = useAuth();
+  const { state, signIn, signOut } = useAuth();
   return (
     <>
       <p>{state.status === "signed-in" ? `signed in as ${state.user.email}` : state.status}</p>
       <button type="button" onClick={() => signIn({ token: "fresh", user })}>
         Sign in
+      </button>
+      <button type="button" onClick={signOut}>
+        Sign out
       </button>
     </>
   );
@@ -57,6 +60,16 @@ describe("AuthProvider", () => {
 
     expect(screen.getByText("signed in as alice@example.com")).toBeInTheDocument();
     expect(tokens.get()).toBe("fresh");
+  });
+
+  it("signs out by clearing the token and the user", async () => {
+    const { tokens } = renderWithAuth();
+    await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
+
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+
+    expect(screen.getByText("signed-out")).toBeInTheDocument();
+    expect(tokens.get()).toBeNull();
   });
 
   it("restores the user from /api/auth/me when a token is stored", async () => {

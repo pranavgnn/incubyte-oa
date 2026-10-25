@@ -12,6 +12,7 @@ export type AuthState =
 type AuthContextValue = {
   state: AuthState;
   signIn(session: AuthResponse): void;
+  signOut(): void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -52,7 +53,11 @@ export function AuthProvider({ authApi, tokens, children }: AuthProviderProps) {
     setState({ status: "signed-in", user });
   };
 
-  return <AuthContext value={{ state, signIn }}>{children}</AuthContext>;
+  const signOut = () => {
+    throw new Error("not implemented");
+  };
+
+  return <AuthContext value={{ state, signIn, signOut }}>{children}</AuthContext>;
 }
 
 export function useAuth(): AuthContextValue {
