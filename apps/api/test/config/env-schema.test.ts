@@ -27,4 +27,12 @@ describe("parseEnv", () => {
   it("rejects a JWT_SECRET shorter than 32 characters", () => {
     expect(() => parseEnv({ ...validSource, JWT_SECRET: "a".repeat(31) })).toThrow(/JWT_SECRET/);
   });
+
+  it("throws a readable message naming every invalid key", () => {
+    const { DATABASE_URL: _omitted, ...withoutDatabaseUrl } = validSource;
+
+    expect(() => parseEnv({ ...withoutDatabaseUrl, JWT_SECRET: "short" })).toThrow(
+      /^Invalid environment variables:\n[\s\S]*DATABASE_URL[\s\S]*JWT_SECRET/,
+    );
+  });
 });
