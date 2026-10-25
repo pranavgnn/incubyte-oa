@@ -128,4 +128,27 @@ describe("LoginPage", () => {
       "Network error — check your connection",
     );
   });
+
+  it("disables the submit button and shows progress while signing in", async () => {
+    let respond: () => void = () => {};
+    server.use(
+      http.post(
+        `${baseUrl}/api/auth/login`,
+        () =>
+          new Promise<Response>((resolve) => {
+            respond = () => resolve(HttpResponse.json({ token: "t0k3n", user: aliceUser }));
+          }),
+      ),
+    );
+    renderLogin();
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText("Email"), "alice@example.com");
+    await user.type(screen.getByLabelText("Password"), "correct horse");
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+
+    expect(await screen.findByRole("button", { name: /Signing in…/ })).toBeDisabled();
+    respond();
+    expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
+  });
 });
