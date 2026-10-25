@@ -13,7 +13,11 @@ function setup() {
 
 describe("vehiclesApi reads", () => {
   it("lists every vehicle with the bearer token", async () => {
-    const vehicles = [aVehicle(), aVehicle({ quantity: 0, imageUrl: "https://img.test/a.webp" })];
+    // The API always sends imageUrl, as null when a vehicle has no image.
+    const vehicles = [
+      { ...aVehicle(), imageUrl: null },
+      aVehicle({ quantity: 0, imageUrl: "https://img.test/a.webp" }),
+    ];
     let authorization: string | null = null;
     server.use(
       http.get(`${baseUrl}/api/vehicles`, ({ request }) => {
