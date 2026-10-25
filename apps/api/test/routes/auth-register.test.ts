@@ -162,4 +162,16 @@ describe("POST /api/auth/register", () => {
     expect(response.body.error.code).toBe("CONFLICT");
     expect(await userCount()).toBe(1);
   });
+
+  it("lets exactly one of several concurrent registrations for the same email succeed", async () => {
+    const emails = ["bob@example.com", "BOB@example.com", " Bob@Example.com", "bob@EXAMPLE.com"];
+
+    const responses = await Promise.all(
+      emails.map((email) => register({ email, password: "correct-horse" })),
+    );
+
+    const statuses = responses.map((response) => response.status).sort();
+    expect(statuses).toEqual([201, 409, 409, 409]);
+    expect(await userCount()).toBe(1);
+  });
 });
