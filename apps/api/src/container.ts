@@ -7,7 +7,7 @@ import { createDb } from "./db/client.js";
 import { DrizzleHealthRepository } from "./repositories/drizzle-health-repository.js";
 import { DrizzleUserRepository } from "./repositories/drizzle-user-repository.js";
 import { AuthService } from "./services/auth-service.js";
-import { BcryptPasswordHasher } from "./services/bcrypt-password-hasher.js";
+import { BCRYPT_COST, BcryptPasswordHasher } from "./services/bcrypt-password-hasher.js";
 import { HealthService } from "./services/health-service.js";
 import { JoseTokenIssuer } from "./services/jose-token-issuer.js";
 import { JoseTokenVerifier } from "./services/jose-token-verifier.js";
@@ -25,7 +25,7 @@ export function createContainer(env: Env, options: ContainerOptions = {}) {
     authController: new AuthController(
       new AuthService(
         new DrizzleUserRepository(db),
-        new BcryptPasswordHasher(),
+        new BcryptPasswordHasher(BCRYPT_COST),
         new JoseTokenIssuer(env.JWT_SECRET, env.JWT_EXPIRES_IN),
       ),
     ),
