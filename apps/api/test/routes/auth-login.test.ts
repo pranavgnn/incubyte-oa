@@ -106,4 +106,10 @@ describe("POST /api/auth/login", () => {
 
     expectValidationError(response, ["email"]);
   });
+
+  it("returns 400 VALIDATION_ERROR when the password is empty", async () => {
+    const response = await login({ email: "alice@example.com", password: "" });
+
+    expectValidationError(response, ["password"]);
+  });
 });
